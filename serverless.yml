@@ -1,0 +1,28 @@
+service: go-sls-marketplace
+
+plugins:
+  - serverless-localstack
+  - serverless-go-plugin
+
+custom:
+  localstack:
+    stages:
+      - local
+    autostart: true
+    docker:
+      compose_file: docker/compose.yaml
+    lambda:
+      mount_code: true
+    debug: true
+  go:
+    supportedRuntimes: ["provided.al2"]
+    buildProvidedRuntimeAsBootstrap: true
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  apiName: marketplace-api
+  memorySize: 128
+  apiGateway:
+    shouldStartNameWithService: true
