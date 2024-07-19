@@ -53,7 +53,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 				UpdatedAt:   fixedTime.Format(time.RFC3339),
 			},
 			mockError:      nil,
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusCreated,
 			expectedBody: AddProductResponse{
 				ID:          "1",
 				Name:        "Test Product",
@@ -128,7 +128,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 
 			assert.Equal(t, tt.expectedStatus, rr.Code)
 
-			if tt.expectedStatus == http.StatusOK {
+			if tt.expectedStatus == http.StatusCreated {
 				var response AddProductResponse
 				err := json.Unmarshal(rr.Body.Bytes(), &response)
 				assert.NoError(t, err)
