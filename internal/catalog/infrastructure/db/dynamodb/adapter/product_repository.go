@@ -2,7 +2,6 @@ package adapter
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -51,7 +50,7 @@ func (r *dynamoDbProductRepository) Find(id domain.ProductID) (*domain.Product, 
 	}
 
 	if result.Item == nil {
-		return nil, fmt.Errorf("product not found")
+		return nil, domain.ErrNotFoundProduct
 	}
 
 	var entity DynamoDbProductEntity
