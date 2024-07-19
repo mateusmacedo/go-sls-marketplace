@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
@@ -19,7 +21,14 @@ func setupTestDB(t *testing.T) (*gorm.DB, sqlmock.Sqlmock) {
 
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
-	}), &gorm.Config{})
+	}), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   "",                              // table name prefix, table for `User` would be `t_users`
+			SingularTable: false,                           // use singular table name, table for `User` would be `user` with this option enabled
+			NoLowerCase:   false,                           // skip the snake_casing of names
+			NameReplacer:  strings.NewReplacer("Gorm", ""), // use name replacer to change struct/field name before convert it to db name
+		},
+	})
 	assert.NoError(t, err)
 
 	return gormDB, mock
