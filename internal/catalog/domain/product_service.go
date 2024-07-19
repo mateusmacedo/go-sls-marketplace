@@ -6,8 +6,7 @@ type ProductAdder interface {
 	AddProduct(id ProductID, name, description string, price float64) (*Product, error)
 }
 
-type ProductFinder interface {
-	GetProduct(id ProductID) (*Product, error)
+type AllProductFinder interface {
 	GetAllProducts() ([]*Product, error)
 }
 

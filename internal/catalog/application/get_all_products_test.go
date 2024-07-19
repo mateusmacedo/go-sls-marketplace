@@ -11,31 +11,25 @@ import (
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
 
-// MockProductFinder é um mock da interface ProductFinder
-type MockProductFinder struct {
+type MockAllProductFinder struct {
 	mock.Mock
 }
 
-func (m *MockProductFinder) GetAllProducts() ([]*domain.Product, error) {
+func (m *MockAllProductFinder) GetAllProducts() ([]*domain.Product, error) {
 	args := m.Called()
 	return args.Get(0).([]*domain.Product), args.Error(1)
-}
-
-func (m *MockProductFinder) GetProduct(id domain.ProductID) (*domain.Product, error) {
-	args := m.Called(id)
-	return args.Get(0).(*domain.Product), args.Error(1)
 }
 
 func TestGetAllProductsUseCase_Execute(t *testing.T) {
 	testCases := []struct {
 		name             string
-		mockBehavior     func(*MockProductFinder)
+		mockBehavior     func(*MockAllProductFinder)
 		expectedProducts []*domain.Product
 		expectedError    error
 	}{
 		{
 			name: "Successful retrieval of products",
-			mockBehavior: func(m *MockProductFinder) {
+			mockBehavior: func(m *MockAllProductFinder) {
 				m.On("GetAllProducts").Return([]*domain.Product{
 					{
 						ID:          "1",
@@ -73,7 +67,7 @@ func TestGetAllProductsUseCase_Execute(t *testing.T) {
 		},
 		{
 			name: "Error retrieving products",
-			mockBehavior: func(m *MockProductFinder) {
+			mockBehavior: func(m *MockAllProductFinder) {
 				m.On("GetAllProducts").Return([]*domain.Product(nil), errors.New("database error"))
 			},
 			expectedProducts: []*domain.Product{},
@@ -85,7 +79,7 @@ func TestGetAllProductsUseCase_Execute(t *testing.T) {
 		tc := tc // capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			// Create a new mock and use case for each test
-			mockFinder := new(MockProductFinder)
+			mockFinder := new(MockAllProductFinder)
 			useCase := NewGetAllProductsUseCase(mockFinder)
 
 			// Set up mock behavior

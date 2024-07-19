@@ -3,10 +3,10 @@ package application
 import "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 
 type GetAllProductsUseCase struct {
-	productFinder domain.ProductFinder
+	productFinder domain.AllProductFinder
 }
 
-func NewGetAllProductsUseCase(productFinder domain.ProductFinder) *GetAllProductsUseCase {
+func NewGetAllProductsUseCase(productFinder domain.AllProductFinder) *GetAllProductsUseCase {
 	return &GetAllProductsUseCase{
 		productFinder: productFinder,
 	}
