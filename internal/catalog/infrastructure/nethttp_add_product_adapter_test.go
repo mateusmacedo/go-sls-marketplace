@@ -35,6 +35,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 		expectedStatus int
 		expectedBody   interface{}
 		expectExecute  bool
+		method         string
 	}{
 		{
 			name: "Successful product addition",
@@ -63,6 +64,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 				UpdatedAt:   fixedTime.Format(time.RFC3339),
 			},
 			expectExecute: true,
+			method:        http.MethodPost,
 		},
 		{
 			name: "Failed product addition",
@@ -77,6 +79,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 			expectedStatus: http.StatusInternalServerError,
 			expectedBody:   domain.ErrRepositoryProduct.Error() + "\n",
 			expectExecute:  true,
+			method:         http.MethodPost,
 		},
 		{
 			name: "Invalid input - empty name",
@@ -91,6 +94,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   domain.ErrInvalidProductName.Error() + "\n",
 			expectExecute:  true,
+			method:         http.MethodPost,
 		},
 		{
 			name:           "Invalid JSON input",
@@ -100,6 +104,17 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   "invalid character 'i' looking for beginning of value\n",
 			expectExecute:  false,
+			method:         http.MethodPost,
+		},
+		{
+			name:           "Method not allowed",
+			input:          AddProductRequest{},
+			mockOutput:     nil,
+			mockError:      nil,
+			expectedStatus: http.StatusMethodNotAllowed,
+			expectedBody:   ErrHttpMethodNotAllowed.Error() + "\n",
+			expectExecute:  false,
+			method:         http.MethodGet,
 		},
 	}
 
@@ -121,7 +136,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			req, _ := http.NewRequest("POST", "/products", bytes.NewBuffer(body))
+			req, _ := http.NewRequest(tt.method, "/products", bytes.NewReader(body))
 			rr := httptest.NewRecorder()
 
 			adapter.Handle(rr, req)
