@@ -39,8 +39,11 @@ func NewProductService(saveRepository ProductSaveRepository, findRepository Prod
 func (s *ProductService) AddProduct(id ProductID, name, description string, price float64) (*Product, error) {
 	productExists, err := s.findRepository.Find(id)
 	if err != nil {
-		return nil, err
+		if err != ErrNotFoundProduct {
+			return nil, err
+		}
 	}
+
 	if productExists != nil {
 		return nil, ErrAlreadyExistsProduct
 	}
