@@ -89,6 +89,10 @@ func (s *ProductService) UpdateProduct(id ProductID, name, description string, p
 }
 
 func (s *ProductService) DeleteProduct(id ProductID) error {
+	if id == "" {
+		return errors.New("invalid product ID")
+	}
+
 	product, err := s.findRepository.Find(id)
 	if err != nil {
 		return err
