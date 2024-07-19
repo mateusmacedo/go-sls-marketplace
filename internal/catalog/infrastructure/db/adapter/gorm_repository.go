@@ -33,7 +33,7 @@ func (repo *GormProductRepository) Save(product *domain.Product) error {
 }
 
 func (repo *GormProductRepository) Find(id domain.ProductID) (*domain.Product, error) {
-	var entity ProductEntity
+	var entity GormProductEntity
 	err := repo.db.First(&entity, "id = ?", id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -45,7 +45,7 @@ func (repo *GormProductRepository) Find(id domain.ProductID) (*domain.Product, e
 }
 
 func (repo *GormProductRepository) FindAll() ([]*domain.Product, error) {
-	var entities []ProductEntity
+	var entities []GormProductEntity
 	err := repo.db.Find(&entities).Error
 	if err != nil {
 		return nil, err
@@ -59,5 +59,5 @@ func (repo *GormProductRepository) FindAll() ([]*domain.Product, error) {
 }
 
 func (repo *GormProductRepository) Delete(id domain.ProductID) error {
-	return repo.db.Delete(&ProductEntity{}, "id = ?", id).Error
+	return repo.db.Delete(&GormProductEntity{}, "id = ?", id).Error
 }

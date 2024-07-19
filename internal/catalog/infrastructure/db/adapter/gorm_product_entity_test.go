@@ -14,13 +14,13 @@ func TestProductEntity_ToDomain(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		pe      ProductEntity
+		pe      GormProductEntity
 		want    *domain.Product
 		wantErr error
 	}{
 		{
 			name: "Valid ProductEntity",
-			pe: ProductEntity{
+			pe: GormProductEntity{
 				ID:          "test-id",
 				Name:        "Test Product",
 				Description: "This is a test product",
@@ -60,7 +60,7 @@ func TestNewProductEntityFromDomain(t *testing.T) {
 	tests := []struct {
 		name    string
 		product *domain.Product
-		want    *ProductEntity
+		want    *GormProductEntity
 		wantErr error
 	}{
 		{
@@ -73,7 +73,7 @@ func TestNewProductEntityFromDomain(t *testing.T) {
 				CreatedAt:   now,
 				UpdatedAt:   now,
 			},
-			want: &ProductEntity{
+			want: &GormProductEntity{
 				ID:          "test-id",
 				Name:        "Test Product",
 				Description: "This is a test product",

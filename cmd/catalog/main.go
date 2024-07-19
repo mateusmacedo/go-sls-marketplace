@@ -20,7 +20,7 @@ func InitializeServer() (*mux.Router, error) {
 		return nil, err
 	}
 
-	err = dbConn.AutoMigrate(&dbadapter.ProductEntity{})
+	err = dbConn.AutoMigrate(&dbadapter.GormProductEntity{})
 	if err != nil {
 		return nil, err
 	}

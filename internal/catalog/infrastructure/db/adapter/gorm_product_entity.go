@@ -6,7 +6,7 @@ import (
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
 
-type ProductEntity struct {
+type GormProductEntity struct {
 	ID          string    `gorm:"primaryKey;type:text;default:(lower(hex(randomblob(16))))" json:"id"`
 	Name        string    `gorm:"type:varchar(100);not null" json:"name"`
 	Description string    `gorm:"type:text;not null" json:"description"`
@@ -15,7 +15,7 @@ type ProductEntity struct {
 	UpdatedAt   time.Time `gorm:"type:timestamp;not null" json:"updated_at"`
 }
 
-func (pe *ProductEntity) ToDomain() (*domain.Product, error) {
+func (pe *GormProductEntity) ToDomain() (*domain.Product, error) {
 	return &domain.Product{
 		ID:          domain.ProductID(pe.ID),
 		Name:        pe.Name,
@@ -26,11 +26,11 @@ func (pe *ProductEntity) ToDomain() (*domain.Product, error) {
 	}, nil
 }
 
-func NewProductEntityFromDomain(product *domain.Product) (*ProductEntity, error) {
+func NewProductEntityFromDomain(product *domain.Product) (*GormProductEntity, error) {
 	if product == nil {
 		return nil, domain.ErrInvalidProductID
 	}
-	return &ProductEntity{
+	return &GormProductEntity{
 		ID:          string(product.ID),
 		Name:        product.Name,
 		Description: product.Description,
