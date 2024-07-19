@@ -1,7 +1,5 @@
 package domain
 
-import "errors"
-
 type ProductAdder interface {
 	AddProduct(id ProductID, name, description string, price float64) (*Product, error)
 }
@@ -44,7 +42,7 @@ func (s *ProductService) AddProduct(id ProductID, name, description string, pric
 		return nil, err
 	}
 	if productExists != nil {
-		return nil, errors.New("product already exists")
+		return nil, ErrAlreadyExistsProduct
 	}
 
 	product, err := NewProduct(id, name, description, price)
@@ -70,14 +68,14 @@ func (s *ProductService) GetAllProducts() ([]*Product, error) {
 
 func (s *ProductService) GetProduct(id ProductID) (*Product, error) {
 	if id == "" {
-		return nil, errors.New("invalid product ID")
+		return nil, ErrInvalidProductID
 	}
 	return s.findRepository.Find(id)
 }
 
 func (s *ProductService) UpdateProduct(id ProductID, name, description string, price float64) (*Product, error) {
 	if id == "" {
-		return nil, errors.New("invalid product ID")
+		return nil, ErrInvalidProductID
 	}
 
 	product, err := s.findRepository.Find(id)
@@ -85,7 +83,7 @@ func (s *ProductService) UpdateProduct(id ProductID, name, description string, p
 		return nil, err
 	}
 	if product == nil {
-		return nil, errors.New("product not found")
+		return nil, ErrNotFoundProduct
 	}
 
 	if err := product.ChangeName(name); err != nil {
@@ -110,7 +108,7 @@ func (s *ProductService) UpdateProduct(id ProductID, name, description string, p
 
 func (s *ProductService) DeleteProduct(id ProductID) error {
 	if id == "" {
-		return errors.New("invalid product ID")
+		return ErrInvalidProductID
 	}
 
 	product, err := s.findRepository.Find(id)
@@ -118,7 +116,7 @@ func (s *ProductService) DeleteProduct(id ProductID) error {
 		return err
 	}
 	if product == nil {
-		return errors.New("product not found")
+		return ErrNotFoundProduct
 	}
 
 	err = s.deleteRepository.Delete(product.ID)

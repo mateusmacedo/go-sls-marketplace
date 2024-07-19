@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -74,7 +73,7 @@ func TestAddProduct(t *testing.T) {
 		mockFindAllRepo := new(MockProductFindAllRepository)
 		mockDeleteRepo := new(MockProductDeleteRepository)
 
-		mockFindRepo.On("Find", mock.Anything).Return(nil, errors.New("error"))
+		mockFindRepo.On("Find", mock.Anything).Return(nil, ErrRepositoryProduct)
 
 		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
 
@@ -126,7 +125,7 @@ func TestAddProduct(t *testing.T) {
 		mockDeleteRepo := new(MockProductDeleteRepository)
 
 		mockFindRepo.On("Find", mock.Anything).Return(nil, nil)
-		mockSaveRepo.On("Save", mock.Anything).Return(errors.New("error"))
+		mockSaveRepo.On("Save", mock.Anything).Return(ErrRepositoryProduct)
 
 		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
 
@@ -163,12 +162,12 @@ func TestGetProduct(t *testing.T) {
 		mockFindRepo := new(MockProductFindRepository)
 		service := NewProductService(nil, mockFindRepo, nil, nil)
 
-		mockFindRepo.On("Find", ProductID("1")).Return(nil, errors.New("product not found"))
+		mockFindRepo.On("Find", ProductID("1")).Return(nil, ErrNotFoundProduct)
 
 		product, err := service.GetProduct(ProductID("1"))
 
 		assert.Nil(t, product)
-		assert.Equal(t, errors.New("product not found"), err)
+		assert.Equal(t, ErrNotFoundProduct, err)
 		mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
 	})
 
@@ -176,12 +175,12 @@ func TestGetProduct(t *testing.T) {
 		mockFindRepo := new(MockProductFindRepository)
 		service := NewProductService(nil, mockFindRepo, nil, nil)
 
-		mockFindRepo.On("Find", ProductID("1")).Return(nil, errors.New("database error"))
+		mockFindRepo.On("Find", ProductID("1")).Return(nil, ErrRepositoryProduct)
 
 		product, err := service.GetProduct(ProductID("1"))
 
 		assert.Nil(t, product)
-		assert.Equal(t, errors.New("database error"), err)
+		assert.Equal(t, ErrRepositoryProduct, err)
 		mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
 	})
 
@@ -192,7 +191,7 @@ func TestGetProduct(t *testing.T) {
 		product, err := service.GetProduct("")
 
 		assert.Nil(t, product)
-		assert.Equal(t, errors.New("invalid product ID"), err)
+		assert.Equal(t, ErrInvalidProductID, err)
 		mockFindRepo.AssertNotCalled(t, "Find")
 	})
 }
@@ -202,7 +201,7 @@ func TestProductService_GetAllProducts(t *testing.T) {
 		name           string
 		setupMock      func(*MockProductFindAllRepository)
 		expectedResult []*Product
-		expectedError  string
+		expectedError  error
 	}{
 		{
 			name: "Successful retrieval of products",
@@ -216,7 +215,7 @@ func TestProductService_GetAllProducts(t *testing.T) {
 				{ID: ProductID("1"), Name: "Product 1", Description: "Description 1", Price: 10.0},
 				{ID: ProductID("2"), Name: "Product 2", Description: "Description 2", Price: 20.0},
 			},
-			expectedError: "",
+			expectedError: nil,
 		},
 		{
 			name: "Empty product list",
@@ -224,15 +223,15 @@ func TestProductService_GetAllProducts(t *testing.T) {
 				mockRepo.On("FindAll").Return([]*Product{}, nil)
 			},
 			expectedResult: []*Product{},
-			expectedError:  "",
+			expectedError:  nil,
 		},
 		{
 			name: "Database error",
 			setupMock: func(mockRepo *MockProductFindAllRepository) {
-				mockRepo.On("FindAll").Return([]*Product{}, errors.New("database connection error"))
+				mockRepo.On("FindAll").Return([]*Product{}, ErrRepositoryProduct)
 			},
 			expectedResult: nil,
-			expectedError:  "database connection error",
+			expectedError:  ErrRepositoryProduct,
 		},
 	}
 
@@ -245,9 +244,9 @@ func TestProductService_GetAllProducts(t *testing.T) {
 
 			result, err := service.GetAllProducts()
 
-			if tc.expectedError != "" {
+			if tc.expectedError != nil {
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tc.expectedError)
+				assert.Equal(t, tc.expectedError, err)
 				assert.Nil(t, result)
 			} else {
 				assert.NoError(t, err)
@@ -305,7 +304,7 @@ func TestUpdateProduct(t *testing.T) {
 		result, err := service.UpdateProduct(ProductID("1"), "Produto Atualizado", "Descrição Atualizada", 15.0)
 
 		assert.Nil(t, result)
-		assert.Equal(t, errors.New("product not found"), err)
+		assert.Equal(t, ErrNotFoundProduct, err)
 		mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
 		mockSaveRepo.AssertNotCalled(t, "Save")
 	})
@@ -315,12 +314,12 @@ func TestUpdateProduct(t *testing.T) {
 		mockSaveRepo := new(MockProductSaveRepository)
 		service := NewProductService(mockSaveRepo, mockFindRepo, nil, nil)
 
-		mockFindRepo.On("Find", ProductID("1")).Return(nil, errors.New("database error"))
+		mockFindRepo.On("Find", ProductID("1")).Return(nil, ErrRepositoryProduct)
 
 		result, err := service.UpdateProduct(ProductID("1"), "Produto Atualizado", "Descrição Atualizada", 15.0)
 
 		assert.Nil(t, result)
-		assert.Equal(t, errors.New("database error"), err)
+		assert.Equal(t, ErrRepositoryProduct, err)
 		mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
 		mockSaveRepo.AssertNotCalled(t, "Save")
 	})
@@ -338,12 +337,12 @@ func TestUpdateProduct(t *testing.T) {
 		}
 
 		mockFindRepo.On("Find", ProductID("1")).Return(existingProduct, nil)
-		mockSaveRepo.On("Save", mock.Anything).Return(errors.New("save error"))
+		mockSaveRepo.On("Save", mock.Anything).Return(ErrRepositoryProduct)
 
 		result, err := service.UpdateProduct(ProductID("1"), "Produto Atualizado", "Descrição Atualizada", 15.0)
 
 		assert.Nil(t, result)
-		assert.Equal(t, errors.New("save error"), err)
+		assert.Equal(t, ErrRepositoryProduct, err)
 		mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
 		mockSaveRepo.AssertCalled(t, "Save", mock.Anything)
 	})
@@ -423,7 +422,7 @@ func TestProductService_DeleteProduct(t *testing.T) {
 		name          string
 		productID     ProductID
 		setupMock     func(*MockProductFindRepository, *MockProductDeleteRepository)
-		expectedError string
+		expectedError error
 	}{
 		{
 			name:      "Successful product deletion",
@@ -432,7 +431,7 @@ func TestProductService_DeleteProduct(t *testing.T) {
 				mockFindRepo.On("Find", ProductID("1")).Return(&Product{ID: ProductID("1")}, nil)
 				mockDeleteRepo.On("Delete", ProductID("1")).Return(nil)
 			},
-			expectedError: "",
+			expectedError: nil,
 		},
 		{
 			name:      "Product not found",
@@ -440,24 +439,24 @@ func TestProductService_DeleteProduct(t *testing.T) {
 			setupMock: func(mockFindRepo *MockProductFindRepository, mockDeleteRepo *MockProductDeleteRepository) {
 				mockFindRepo.On("Find", ProductID("2")).Return(nil, nil)
 			},
-			expectedError: "product not found",
+			expectedError: ErrNotFoundProduct,
 		},
 		{
 			name:      "Database error during find",
 			productID: ProductID("3"),
 			setupMock: func(mockFindRepo *MockProductFindRepository, mockDeleteRepo *MockProductDeleteRepository) {
-				mockFindRepo.On("Find", ProductID("3")).Return(nil, errors.New("database error"))
+				mockFindRepo.On("Find", ProductID("3")).Return(nil, ErrRepositoryProduct)
 			},
-			expectedError: "database error",
+			expectedError: ErrRepositoryProduct,
 		},
 		{
 			name:      "Database error during delete",
 			productID: ProductID("4"),
 			setupMock: func(mockFindRepo *MockProductFindRepository, mockDeleteRepo *MockProductDeleteRepository) {
 				mockFindRepo.On("Find", ProductID("4")).Return(&Product{ID: ProductID("4")}, nil)
-				mockDeleteRepo.On("Delete", ProductID("4")).Return(errors.New("delete error"))
+				mockDeleteRepo.On("Delete", ProductID("4")).Return(ErrRepositoryProduct)
 			},
-			expectedError: "delete error",
+			expectedError: ErrRepositoryProduct,
 		},
 		{
 			name:      "Invalid product ID",
@@ -465,7 +464,7 @@ func TestProductService_DeleteProduct(t *testing.T) {
 			setupMock: func(mockFindRepo *MockProductFindRepository, mockDeleteRepo *MockProductDeleteRepository) {
 				// No setup needed for this case
 			},
-			expectedError: "invalid product ID",
+			expectedError: ErrInvalidProductID,
 		},
 	}
 
@@ -479,9 +478,9 @@ func TestProductService_DeleteProduct(t *testing.T) {
 
 			err := service.DeleteProduct(tc.productID)
 
-			if tc.expectedError != "" {
+			if tc.expectedError != nil {
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tc.expectedError)
+				assert.Equal(t, tc.expectedError, err)
 			} else {
 				assert.NoError(t, err)
 			}
