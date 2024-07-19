@@ -1,4 +1,4 @@
-package infrastructure
+package http
 
 import (
 	"errors"
