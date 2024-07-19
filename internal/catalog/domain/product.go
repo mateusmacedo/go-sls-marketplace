@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"errors"
 	"time"
 )
 
@@ -18,7 +17,7 @@ type Product struct {
 
 func NewProduct(id ProductID, name, description string, price float64) (*Product, error) {
 	if id == "" || name == "" || description == "" || price <= 0 {
-		return nil, errors.New("invalid product attributes")
+		return nil, ErrInvalidProductID
 	}
 
 	return &Product{
@@ -33,7 +32,7 @@ func NewProduct(id ProductID, name, description string, price float64) (*Product
 
 func (p *Product) ChangeName(newName string) error {
 	if newName == "" {
-		return errors.New("invalid product name")
+		return ErrInvalidProductName
 	}
 	p.Name = newName
 	p.UpdatedAt = time.Now()
@@ -42,7 +41,7 @@ func (p *Product) ChangeName(newName string) error {
 
 func (p *Product) ChangeDescription(newDescription string) error {
 	if newDescription == "" {
-		return errors.New("invalid product description")
+		return ErrInvalidProductDescription
 	}
 	p.Description = newDescription
 	p.UpdatedAt = time.Now()
@@ -51,7 +50,7 @@ func (p *Product) ChangeDescription(newDescription string) error {
 
 func (p *Product) ChangePrice(newPrice float64) error {
 	if newPrice <= 0 {
-		return errors.New("invalid product price")
+		return ErrInvalidProductPrice
 	}
 	p.Price = newPrice
 	p.UpdatedAt = time.Now()
