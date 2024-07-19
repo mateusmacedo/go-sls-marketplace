@@ -1,10 +1,10 @@
 package adapter
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
+	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
 
 type DeleteProductRequest struct {
@@ -27,14 +27,13 @@ func (a *NetHTTPDeleteProductAdapter) Handle(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var req DeleteProductRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	productID := r.URL.Path[len("/products/"):]
+	if productID == "" {
+		http.Error(w, domain.ErrInvalidProductID.Error(), http.StatusBadRequest)
 		return
 	}
-
 	err := a.useCase.Execute(application.DeleteProductInput{
-		ID: req.ID,
+		ID: productID,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), HttpError[err])
