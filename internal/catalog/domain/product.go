@@ -33,7 +33,7 @@ func NewProduct(id ProductID, name, description string, price float64) (*Product
 
 func (p *Product) ChangeName(newName string) error {
 	if newName == "" {
-		return errors.New("invalid name")
+		return errors.New("invalid product name")
 	}
 	p.Name = newName
 	p.UpdatedAt = time.Now()
@@ -42,7 +42,7 @@ func (p *Product) ChangeName(newName string) error {
 
 func (p *Product) ChangeDescription(newDescription string) error {
 	if newDescription == "" {
-		return errors.New("invalid description")
+		return errors.New("invalid product description")
 	}
 	p.Description = newDescription
 	p.UpdatedAt = time.Now()
@@ -51,7 +51,7 @@ func (p *Product) ChangeDescription(newDescription string) error {
 
 func (p *Product) ChangePrice(newPrice float64) error {
 	if newPrice <= 0 {
-		return errors.New("invalid price")
+		return errors.New("invalid product price")
 	}
 	p.Price = newPrice
 	p.UpdatedAt = time.Now()
