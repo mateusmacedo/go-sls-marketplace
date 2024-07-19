@@ -10,25 +10,28 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
 
+// MockGetAllProductsUseCase é uma struct que implementa o método mock para GetAllProductsUseCase.
 type MockGetAllProductsUseCase struct {
 	mock.Mock
 }
 
-func (m *MockGetAllProductsUseCase) Execute() ([]*domain.Product, error) {
+// Execute simula a execução do caso de uso GetAllProductsUseCase.
+func (m *MockGetAllProductsUseCase) Execute() ([]*application.GetAllProductsOutput, error) {
 	args := m.Called()
-	return args.Get(0).([]*domain.Product), args.Error(1)
+	return args.Get(0).([]*application.GetAllProductsOutput), args.Error(1)
 }
 
 func TestNetHTTPGetAllProductsAdapter_Handle(t *testing.T) {
-	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC).Format(time.RFC3339)
 
 	tests := []struct {
 		name           string
 		method         string
-		mockProducts   []*domain.Product
+		mockProducts   []*application.GetAllProductsOutput
 		mockError      error
 		expectedStatus int
 		expectedBody   interface{}
@@ -36,7 +39,7 @@ func TestNetHTTPGetAllProductsAdapter_Handle(t *testing.T) {
 		{
 			name:   "Successful retrieval of products",
 			method: http.MethodGet,
-			mockProducts: []*domain.Product{
+			mockProducts: []*application.GetAllProductsOutput{
 				{
 					ID:          "1",
 					Name:        "Test Product 1",
@@ -56,7 +59,7 @@ func TestNetHTTPGetAllProductsAdapter_Handle(t *testing.T) {
 			},
 			mockError:      nil,
 			expectedStatus: http.StatusOK,
-			expectedBody: []ProductResponse{
+			expectedBody: []*GetAllProductsResponse{
 				{
 					ID:          "1",
 					Name:        "Test Product 1",
@@ -78,10 +81,10 @@ func TestNetHTTPGetAllProductsAdapter_Handle(t *testing.T) {
 		{
 			name:           "Empty product list",
 			method:         http.MethodGet,
-			mockProducts:   []*domain.Product{},
+			mockProducts:   []*application.GetAllProductsOutput{},
 			mockError:      nil,
 			expectedStatus: http.StatusOK,
-			expectedBody:   []ProductResponse{},
+			expectedBody:   []*GetAllProductsResponse{},
 		},
 		{
 			name:           "Internal server error",
@@ -89,7 +92,7 @@ func TestNetHTTPGetAllProductsAdapter_Handle(t *testing.T) {
 			mockProducts:   nil,
 			mockError:      domain.ErrRepositoryProduct,
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   "Internal server error\n",
+			expectedBody:   domain.ErrRepositoryProduct.Error() + "\n",
 		},
 		{
 			name:           "Method not allowed",
@@ -118,7 +121,7 @@ func TestNetHTTPGetAllProductsAdapter_Handle(t *testing.T) {
 			assert.Equal(t, tt.expectedStatus, rr.Code)
 
 			if tt.expectedStatus == http.StatusOK {
-				var response []ProductResponse
+				var response []*GetAllProductsResponse
 				err := json.Unmarshal(rr.Body.Bytes(), &response)
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expectedBody, response)

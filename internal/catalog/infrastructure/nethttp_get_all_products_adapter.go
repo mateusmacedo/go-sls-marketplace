@@ -3,18 +3,17 @@ package infrastructure
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 )
 
-type ProductResponse struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Price       float64   `json:"price"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+type GetAllProductsResponse struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	CreatedAt   string  `json:"created_at"`
+	UpdatedAt   string  `json:"updated_at"`
 }
 
 type NetHTTPGetAllProductsAdapter struct {
@@ -35,13 +34,13 @@ func (a *NetHTTPGetAllProductsAdapter) Handle(w http.ResponseWriter, r *http.Req
 
 	products, err := a.useCase.Execute()
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), HttpError[err])
 		return
 	}
 
-	response := make([]ProductResponse, len(products))
+	response := make([]GetAllProductsResponse, len(products))
 	for i, product := range products {
-		response[i] = ProductResponse{
+		response[i] = GetAllProductsResponse{
 			ID:          string(product.ID),
 			Name:        product.Name,
 			Description: product.Description,
