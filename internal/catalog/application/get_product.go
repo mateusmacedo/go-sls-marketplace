@@ -1,6 +1,10 @@
 package application
 
-import "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+import (
+	"time"
+
+	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+)
 
 type GetProductInput struct {
 	ID string `json:"id"`
@@ -42,7 +46,7 @@ func (u *getProductsUseCase) Execute(input GetProductInput) (*GetProductOutput, 
 		Name:        product.Name,
 		Description: product.Description,
 		Price:       product.Price,
-		CreatedAt:   product.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:   product.UpdatedAt.Format("2006-01-02 15:04:05"),
+		CreatedAt:   product.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   product.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }

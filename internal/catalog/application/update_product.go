@@ -1,6 +1,10 @@
 package application
 
-import "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+import (
+	"time"
+
+	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+)
 
 type UpdateProductInput struct {
 	ID          string  `json:"id"`
@@ -15,20 +19,24 @@ type UpdateProductOutput struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 	CreatedAt   string  `json:"created_at"`
-	UpdateAt    string  `json:"updated_at"`
+	UpdatedAt   string  `json:"updated_at"`
 }
 
-type UpdateProductUseCase struct {
+type UpdateProductUseCase interface {
+	Execute(input UpdateProductInput) (*UpdateProductOutput, error)
+}
+
+type updateProductUseCase struct {
 	productUpdater domain.ProductUpdater
 }
 
-func NewUpdateProductUseCase(productUpdater domain.ProductUpdater) *UpdateProductUseCase {
-	return &UpdateProductUseCase{
+func NewUpdateProductUseCase(productUpdater domain.ProductUpdater) UpdateProductUseCase {
+	return &updateProductUseCase{
 		productUpdater: productUpdater,
 	}
 }
 
-func (u *UpdateProductUseCase) Execute(input UpdateProductInput) (*UpdateProductOutput, error) {
+func (u *updateProductUseCase) Execute(input UpdateProductInput) (*UpdateProductOutput, error) {
 	id := domain.ProductID(input.ID)
 
 	product, err := u.productUpdater.UpdateProduct(id, input.Name, input.Description, input.Price)
@@ -41,7 +49,7 @@ func (u *UpdateProductUseCase) Execute(input UpdateProductInput) (*UpdateProduct
 		Name:        product.Name,
 		Description: product.Description,
 		Price:       product.Price,
-		CreatedAt:   product.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdateAt:    product.UpdatedAt.Format("2006-01-02 15:04:05"),
+		CreatedAt:   product.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   product.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }
