@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
+	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
 
 type AddProductRequest struct {
@@ -23,6 +24,16 @@ type AddProductResponse struct {
 	UpdatedAt   string  `json:"updated_at"`
 }
 
+var HttpError = map[error]int{
+	domain.ErrInvalidProductID:          http.StatusBadRequest,
+	domain.ErrInvalidProductName:        http.StatusBadRequest,
+	domain.ErrInvalidProductDescription: http.StatusBadRequest,
+	domain.ErrInvalidProductPrice:       http.StatusBadRequest,
+	domain.ErrAlreadyExistsProduct:      http.StatusConflict,
+	domain.ErrNotFoundProduct:           http.StatusNotFound,
+	domain.ErrRepositoryProduct:         http.StatusInternalServerError,
+}
+
 type NetHTTPAddProductAdapter struct {
 	service application.AddProductUseCase
 }
@@ -38,11 +49,6 @@ func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if req.Name == "" || req.Price <= 0 {
-		http.Error(w, "Invalid product data", http.StatusBadRequest)
-		return
-	}
-
 	product, err := a.service.Execute(application.AddProductInput{
 		ID:          req.ID,
 		Name:        req.Name,
@@ -50,7 +56,7 @@ func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request
 		Price:       req.Price,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), HttpError[err])
 		return
 	}
 

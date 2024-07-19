@@ -3,7 +3,6 @@ package infrastructure
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,6 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
+	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
 
 type MockAddProductUseCase struct {
@@ -73,9 +73,9 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 				Price:       19.99,
 			},
 			mockOutput:     nil,
-			mockError:      errors.New("failed to add product"),
+			mockError:      domain.ErrRepositoryProduct,
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   "failed to add product\n",
+			expectedBody:   domain.ErrRepositoryProduct.Error() + "\n",
 			expectExecute:  true,
 		},
 		{
@@ -87,10 +87,10 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 				Price:       29.99,
 			},
 			mockOutput:     nil,
-			mockError:      nil,
+			mockError:      domain.ErrInvalidProductName,
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "Invalid product data\n",
-			expectExecute:  false,
+			expectedBody:   domain.ErrInvalidProductName.Error() + "\n",
+			expectExecute:  true,
 		},
 		{
 			name:           "Invalid JSON input",
