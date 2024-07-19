@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
 
 type AddProductRequest struct {
@@ -24,16 +23,6 @@ type AddProductResponse struct {
 	UpdatedAt   string  `json:"updated_at"`
 }
 
-var HttpError = map[error]int{
-	domain.ErrInvalidProductID:          http.StatusBadRequest,
-	domain.ErrInvalidProductName:        http.StatusBadRequest,
-	domain.ErrInvalidProductDescription: http.StatusBadRequest,
-	domain.ErrInvalidProductPrice:       http.StatusBadRequest,
-	domain.ErrAlreadyExistsProduct:      http.StatusConflict,
-	domain.ErrNotFoundProduct:           http.StatusNotFound,
-	domain.ErrRepositoryProduct:         http.StatusInternalServerError,
-}
-
 type NetHTTPAddProductAdapter struct {
 	service application.AddProductUseCase
 }
@@ -43,6 +32,11 @@ func NewNetHTTPAddProductAdapter(service application.AddProductUseCase) *NetHTTP
 }
 
 func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, ErrHttpMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
+		return
+	}
+
 	var req AddProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -70,5 +64,6 @@ func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(res)
 }
