@@ -18,17 +18,17 @@ type ProductAddOutput struct {
 	UpdateAt    string  `json:"updated_at"`
 }
 
-type ProductAddUseCase struct {
+type AddProductUseCase struct {
 	productAdder domain.ProductAdder
 }
 
-func NewProductAddUseCase(ProductAdder domain.ProductAdder) *ProductAddUseCase {
-	return &ProductAddUseCase{
+func NewProductAddUseCase(ProductAdder domain.ProductAdder) *AddProductUseCase {
+	return &AddProductUseCase{
 		productAdder: ProductAdder,
 	}
 }
 
-func (u *ProductAddUseCase) Execute(input ProductAddInput) (*ProductAddOutput, error) {
+func (u *AddProductUseCase) Execute(input ProductAddInput) (*ProductAddOutput, error) {
 	id := domain.ProductID(input.ID)
 	name := input.Name
 	description := input.Description
