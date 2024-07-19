@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
@@ -23,7 +24,12 @@ func (repo *GormProductRepository) Save(product *domain.Product) error {
 	if err != nil {
 		return err
 	}
-	return repo.db.Create(entity).Error
+	result := repo.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"name", "description", "price", "updated_at"}),
+	}).Create(entity)
+
+	return result.Error
 }
 
 func (repo *GormProductRepository) Find(id domain.ProductID) (*domain.Product, error) {
