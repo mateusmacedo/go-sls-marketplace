@@ -1,13 +1,10 @@
-package adapter
+package http
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
-
-var ErrHttpMethodNotAllowed = errors.New("method not allowed")
 
 var HttpError = map[error]int{
 	domain.ErrInvalidProductID:          http.StatusBadRequest,
