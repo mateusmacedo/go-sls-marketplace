@@ -73,13 +73,11 @@ func TestGormProductRepository_Find(t *testing.T) {
 
 	productID := domain.ProductID("test-id")
 
-	// Create a fixed time for testing
 	fixedTime := time.Now().Round(time.Second)
 
 	rows := sqlmock.NewRows([]string{"id", "name", "description", "price", "created_at", "updated_at"}).
 		AddRow("test-id", "Test Product", "Test Description", 9.99, fixedTime, fixedTime)
 
-	// Adjust the SQL query expectation to match GORM's actual behavior
 	mock.ExpectQuery(`SELECT \* FROM "product_entities" WHERE id = \$1 ORDER BY "product_entities"."id" LIMIT \$2`).
 		WithArgs(string(productID), 1).
 		WillReturnRows(rows)
@@ -105,7 +103,6 @@ func TestGormProductRepository_Find_Error_WhenGormError(t *testing.T) {
 
 	productID := domain.ProductID("test-id")
 
-	// Adjust the SQL query expectation to match GORM's actual behavior
 	mock.ExpectQuery(`SELECT \* FROM "product_entities" WHERE id = \$1 ORDER BY "product_entities"."id" LIMIT \$2`).
 		WithArgs(string(productID), 1).
 		WillReturnError(errors.New("unexpected error"))
@@ -173,7 +170,6 @@ func TestGormProductRepository_Find_NotFound(t *testing.T) {
 
 	productID := domain.ProductID("non-existent-id")
 
-	// Adjust the SQL query expectation to match GORM's actual behavior
 	mock.ExpectQuery(`SELECT \* FROM "product_entities" WHERE id = \$1 ORDER BY "product_entities"."id" LIMIT \$2`).
 		WithArgs(string(productID), 1).
 		WillReturnError(gorm.ErrRecordNotFound)
