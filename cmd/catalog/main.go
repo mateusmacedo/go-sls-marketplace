@@ -12,7 +12,7 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
-	dbadapter "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/db/adapter"
+	dbadapter "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/db/gorm/adapter"
 	httpadapter "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/adapter"
 )
 
