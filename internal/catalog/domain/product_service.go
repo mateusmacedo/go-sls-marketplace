@@ -41,7 +41,11 @@ func (s *ProductService) AddProduct(id ProductID, name, description string, pric
 }
 
 func (s *ProductService) GetAllProducts() ([]*Product, error) {
-	return s.findAllRepository.FindAll()
+	records, err := s.findAllRepository.FindAll()
+	if err != nil {
+		return nil, err
+	}
+	return records, nil
 }
 
 func (s *ProductService) GetProduct(id ProductID) (*Product, error) {
@@ -52,6 +56,10 @@ func (s *ProductService) GetProduct(id ProductID) (*Product, error) {
 }
 
 func (s *ProductService) UpdateProduct(id ProductID, name, description string, price float64) (*Product, error) {
+	if id == "" {
+		return nil, errors.New("invalid product ID")
+	}
+
 	product, err := s.findRepository.Find(id)
 	if err != nil {
 		return nil, err
@@ -60,9 +68,17 @@ func (s *ProductService) UpdateProduct(id ProductID, name, description string, p
 		return nil, errors.New("product not found")
 	}
 
-	product.ChangeName(name)
-	product.ChangeDescription(description)
-	product.ChangePrice(price)
+	if err := product.ChangeName(name); err != nil {
+		return nil, err
+	}
+
+	if err := product.ChangeDescription(description); err != nil {
+		return nil, err
+	}
+
+	if err := product.ChangePrice(price); err != nil {
+		return nil, err
+	}
 
 	err = s.saveRepository.Save(product)
 	if err != nil {
