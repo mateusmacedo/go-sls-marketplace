@@ -45,6 +45,9 @@ func (s *ProductService) GetAllProducts() ([]*Product, error) {
 }
 
 func (s *ProductService) GetProduct(id ProductID) (*Product, error) {
+	if id == "" {
+		return nil, errors.New("invalid product ID")
+	}
 	return s.findRepository.Find(id)
 }
 
