@@ -36,7 +36,7 @@ func (a *NetHTTPGetProductAdapter) Handle(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	productID := r.URL.Query().Get("id")
+	productID := r.URL.Path[len("/products/"):]
 	input := application.GetProductInput{
 		ID: productID,
 	}
