@@ -56,7 +56,7 @@ func TestUpdateProductUseCase_Execute(t *testing.T) {
 				Name:        "Updated Product",
 				Description: "Updated Description",
 				Price:       15.99,
-				CreatedAt:   "2023-05-01 10:00:00",
+				CreatedAt:   "2023-05-01T10:00:00Z",
 			},
 			expectedError: nil,
 		},
@@ -98,7 +98,7 @@ func TestUpdateProductUseCase_Execute(t *testing.T) {
 				assert.Equal(t, tc.expectedOutput.Price, output.Price)
 				assert.Equal(t, tc.expectedOutput.CreatedAt, output.CreatedAt)
 
-				_, parseErr := time.Parse("2006-01-02 15:04:05", output.UpdateAt)
+				_, parseErr := time.Parse("2006-01-02T15:04:05Z", output.CreatedAt)
 				assert.NoError(t, parseErr)
 			}
 

@@ -62,8 +62,8 @@ func TestProductAddUseCase_Execute(t *testing.T) {
 				Name:        "Test Product",
 				Description: "A test product",
 				Price:       9.99,
-				CreatedAt:   time.Now().Format("2006-01-02 15:04:05"),
-				UpdatedAt:   time.Now().Format("2006-01-02 15:04:05"),
+				CreatedAt:   time.Now().Format(time.RFC3339),
+				UpdatedAt:   time.Now().Format(time.RFC3339),
 			},
 		},
 		{
