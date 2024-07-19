@@ -13,7 +13,7 @@ import (
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 	dbadapter "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/db/gorm/adapter"
-	httpadapter "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/adapter"
+	httpadapter "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/net/adapter"
 )
 
 func InitializeServer() (*mux.Router, error) {
