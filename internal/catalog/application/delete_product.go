@@ -6,17 +6,21 @@ type DeleteProductInput struct {
 	ID string `json:"id"`
 }
 
-type DeleteProductUseCase struct {
+type DeleteProductUseCase interface {
+	Execute(input DeleteProductInput) error
+}
+
+type deleteProductUseCase struct {
 	productDeleter domain.ProductDeleter
 }
 
-func NewDeleteProductUseCase(productDeleter domain.ProductDeleter) *DeleteProductUseCase {
-	return &DeleteProductUseCase{
+func NewDeleteProductUseCase(productDeleter domain.ProductDeleter) *deleteProductUseCase {
+	return &deleteProductUseCase{
 		productDeleter: productDeleter,
 	}
 }
 
-func (u *DeleteProductUseCase) Execute(input DeleteProductInput) error {
+func (u *deleteProductUseCase) Execute(input DeleteProductInput) error {
 	id := domain.ProductID(input.ID)
 
 	err := u.productDeleter.DeleteProduct(id)
