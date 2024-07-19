@@ -41,7 +41,7 @@ func InitializeServer() (*mux.Router, error) {
 	addProductUseCase := application.NewProductAddUseCase(productService)
 	deleteProductUseCase := application.NewDeleteProductUseCase(productService)
 	getAllProductsUseCase := application.NewGetAllProductsUseCase(productService)
-	getProductUseCase := application.NewGetProductsUseCase(productService)
+	getProductUseCase := application.NewGetProductUseCase(productService)
 	updateProductUseCase := application.NewUpdateProductUseCase(productService)
 
 	addProductHandler := httpadapter.NewNetHTTPAddProductAdapter(addProductUseCase)
