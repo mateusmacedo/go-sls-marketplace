@@ -3,24 +3,13 @@ package adapter
 import (
 	"context"
 	"fmt"
-	"log"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
-
-func initDB() *dynamodb.Client {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
-	}
-
-	return dynamodb.NewFromConfig(cfg)
-}
 
 type dynamoDbProductRepository struct {
 	DB        DynamoDBAPI
