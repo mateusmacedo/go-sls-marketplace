@@ -31,6 +31,36 @@ func TestSaveProduct(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestSaveProductErrorWhenProductIsNil(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
+	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+
+	err := repo.Save(nil)
+	assert.Error(t, err)
+}
+
+func TestSaveProductErrorWhenMarshalMapFails(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
+	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+
+	product := &domain.Product{
+		ID:    "1",
+		Name:  "Product 1",
+		Price: 100,
+	}
+
+	mockDB.EXPECT().PutItem(gomock.Any(), gomock.Any()).Return(nil, assert.AnError)
+
+	err := repo.Save(product)
+	assert.Error(t, err)
+}
+
 func TestFindProduct(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -55,6 +85,40 @@ func TestFindProduct(t *testing.T) {
 	assert.Equal(t, domain.ProductID(productID), product.ID)
 	assert.Equal(t, "Product 1", product.Name)
 	assert.Equal(t, 100.00, product.Price)
+}
+
+func TestFindProductErrorWhenDynamoDBGetItemFails(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
+	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+
+	productID := "1"
+
+	mockDB.EXPECT().GetItem(gomock.Any(), gomock.Any()).Return(nil, assert.AnError)
+
+	product, err := repo.Find(domain.ProductID(productID))
+	assert.Error(t, err)
+	assert.Nil(t, product)
+}
+
+func TestFindProductErrorWhenProductNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
+	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+
+	productID := "1"
+
+	mockOutput := &dynamodb.GetItemOutput{}
+
+	mockDB.EXPECT().GetItem(gomock.Any(), gomock.Any()).Return(mockOutput, nil)
+
+	product, err := repo.Find(domain.ProductID(productID))
+	assert.Error(t, err)
+	assert.Nil(t, product)
 }
 
 func TestFindAllProducts(t *testing.T) {
@@ -84,6 +148,20 @@ func TestFindAllProducts(t *testing.T) {
 	products, err := repo.FindAll()
 	assert.NoError(t, err)
 	assert.Len(t, products, 2)
+}
+
+func TestFindAllProductsErrorWhenDynamoDBScanFails(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
+	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+
+	mockDB.EXPECT().Scan(gomock.Any(), gomock.Any()).Return(nil, assert.AnError)
+
+	products, err := repo.FindAll()
+	assert.Error(t, err)
+	assert.Nil(t, products)
 }
 
 func TestDeleteProduct(t *testing.T) {
