@@ -48,128 +48,152 @@ func (m *MockProductDeleteRepository) Delete(id ProductID) error {
 }
 
 func TestAddProduct(t *testing.T) {
-	mockSaveRepo := new(MockProductSaveRepository)
-	mockFindRepo := new(MockProductFindRepository)
-	mockFindAllRepo := new(MockProductFindAllRepository)
-	mockDeleteRepo := new(MockProductDeleteRepository)
+	t.Run("Successful addition", func(t *testing.T) {
+		mockSaveRepo := new(MockProductSaveRepository)
+		mockFindRepo := new(MockProductFindRepository)
+		mockFindAllRepo := new(MockProductFindAllRepository)
+		mockDeleteRepo := new(MockProductDeleteRepository)
 
-	mockFindRepo.On("Find", mock.Anything).Return(nil, nil)
-	mockSaveRepo.On("Save", mock.Anything).Return(nil)
+		mockFindRepo.On("Find", mock.Anything).Return(nil, nil)
+		mockSaveRepo.On("Save", mock.Anything).Return(nil)
 
-	service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
+		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
 
-	product, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
+		product, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
 
-	assert.Nil(t, err)
-	assert.NotNil(t, product)
-	mockFindRepo.AssertCalled(t, "Find", mock.Anything)
-	mockSaveRepo.AssertCalled(t, "Save", mock.Anything)
-}
+		assert.Nil(t, err)
+		assert.NotNil(t, product)
+		mockFindRepo.AssertCalled(t, "Find", mock.Anything)
+		mockSaveRepo.AssertCalled(t, "Save", mock.Anything)
+	})
 
-func TestAddProductWhenFindRepositoryReturnError(t *testing.T) {
-	mockSaveRepo := new(MockProductSaveRepository)
-	mockFindRepo := new(MockProductFindRepository)
-	mockFindAllRepo := new(MockProductFindAllRepository)
-	mockDeleteRepo := new(MockProductDeleteRepository)
+	t.Run("Find repository returns error", func(t *testing.T) {
+		mockSaveRepo := new(MockProductSaveRepository)
+		mockFindRepo := new(MockProductFindRepository)
+		mockFindAllRepo := new(MockProductFindAllRepository)
+		mockDeleteRepo := new(MockProductDeleteRepository)
 
-	mockFindRepo.On("Find", mock.Anything).Return(nil, errors.New("error"))
+		mockFindRepo.On("Find", mock.Anything).Return(nil, errors.New("error"))
 
-	service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
+		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
 
-	_, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
+		_, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
 
-	assert.NotNil(t, err)
-	mockFindRepo.AssertCalled(t, "Find", mock.Anything)
-	mockSaveRepo.AssertNotCalled(t, "Save", mock.Anything)
-}
+		assert.NotNil(t, err)
+		mockFindRepo.AssertCalled(t, "Find", mock.Anything)
+		mockSaveRepo.AssertNotCalled(t, "Save", mock.Anything)
+	})
 
-func TestAddProductWhenProductAlreadyExists(t *testing.T) {
-	mockSaveRepo := new(MockProductSaveRepository)
-	mockFindRepo := new(MockProductFindRepository)
-	mockFindAllRepo := new(MockProductFindAllRepository)
-	mockDeleteRepo := new(MockProductDeleteRepository)
+	t.Run("Product already exists", func(t *testing.T) {
+		mockSaveRepo := new(MockProductSaveRepository)
+		mockFindRepo := new(MockProductFindRepository)
+		mockFindAllRepo := new(MockProductFindAllRepository)
+		mockDeleteRepo := new(MockProductDeleteRepository)
 
-	mockFindRepo.On("Find", mock.Anything).Return(&Product{}, nil)
+		mockFindRepo.On("Find", mock.Anything).Return(&Product{}, nil)
 
-	service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
+		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
 
-	_, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
+		_, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
 
-	assert.NotNil(t, err)
-	mockFindRepo.AssertCalled(t, "Find", mock.Anything)
-	mockSaveRepo.AssertNotCalled(t, "Save", mock.Anything)
-}
+		assert.NotNil(t, err)
+		mockFindRepo.AssertCalled(t, "Find", mock.Anything)
+		mockSaveRepo.AssertNotCalled(t, "Save", mock.Anything)
+	})
 
-func TestAddProductWhenNewProductReturnErr(t *testing.T) {
-	mockSaveRepo := new(MockProductSaveRepository)
-	mockFindRepo := new(MockProductFindRepository)
-	mockFindAllRepo := new(MockProductFindAllRepository)
-	mockDeleteRepo := new(MockProductDeleteRepository)
+	t.Run("Invalid product data", func(t *testing.T) {
+		mockSaveRepo := new(MockProductSaveRepository)
+		mockFindRepo := new(MockProductFindRepository)
+		mockFindAllRepo := new(MockProductFindAllRepository)
+		mockDeleteRepo := new(MockProductDeleteRepository)
 
-	mockFindRepo.On("Find", mock.Anything).Return(nil, nil)
-	mockSaveRepo.On("Save", mock.Anything).Return(nil, errors.New("error"))
-	service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
+		mockFindRepo.On("Find", mock.Anything).Return(nil, nil)
 
-	_, err := service.AddProduct("", "", "Descrição Teste", -10.0)
+		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
 
-	assert.NotNil(t, err)
-	mockFindRepo.AssertCalled(t, "Find", mock.Anything)
-}
+		_, err := service.AddProduct("", "", "Descrição Teste", -10.0)
 
-func TestAddProductWhenSaveRepoReturnErr(t *testing.T) {
-	mockSaveRepo := new(MockProductSaveRepository)
-	mockFindRepo := new(MockProductFindRepository)
-	mockFindAllRepo := new(MockProductFindAllRepository)
-	mockDeleteRepo := new(MockProductDeleteRepository)
+		assert.NotNil(t, err)
+		mockFindRepo.AssertCalled(t, "Find", mock.Anything)
+		mockSaveRepo.AssertNotCalled(t, "Save", mock.Anything)
+	})
 
-	mockFindRepo.On("Find", mock.Anything).Return(nil, nil)
-	mockSaveRepo.On("Save", mock.Anything).Return(errors.New("error"))
+	t.Run("Save repository returns error", func(t *testing.T) {
+		mockSaveRepo := new(MockProductSaveRepository)
+		mockFindRepo := new(MockProductFindRepository)
+		mockFindAllRepo := new(MockProductFindAllRepository)
+		mockDeleteRepo := new(MockProductDeleteRepository)
 
-	service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
+		mockFindRepo.On("Find", mock.Anything).Return(nil, nil)
+		mockSaveRepo.On("Save", mock.Anything).Return(errors.New("error"))
 
-	_, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
+		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
 
-	assert.NotNil(t, err)
-	mockFindRepo.AssertCalled(t, "Find", mock.Anything)
-	mockSaveRepo.AssertCalled(t, "Save", mock.Anything)
+		_, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
+
+		assert.NotNil(t, err)
+		mockFindRepo.AssertCalled(t, "Find", mock.Anything)
+		mockSaveRepo.AssertCalled(t, "Save", mock.Anything)
+	})
 }
 
 func TestGetProduct(t *testing.T) {
-	mockFindRepo := new(MockProductFindRepository)
-	service := NewProductService(nil, mockFindRepo, nil, nil)
+	t.Run("Successful retrieval", func(t *testing.T) {
+		mockFindRepo := new(MockProductFindRepository)
+		service := NewProductService(nil, mockFindRepo, nil, nil)
 
-	expectedProduct := &Product{
-		ID:          ProductID("1"),
-		Name:        "Produto Teste",
-		Description: "Descrição Teste",
-		Price:       10.0,
-	}
+		expectedProduct := &Product{
+			ID:          ProductID("1"),
+			Name:        "Produto Teste",
+			Description: "Descrição Teste",
+			Price:       10.0,
+		}
 
-	mockFindRepo.On("Find", ProductID("1")).Return(expectedProduct, nil)
+		mockFindRepo.On("Find", ProductID("1")).Return(expectedProduct, nil)
 
-	product, err := service.GetProduct(ProductID("1"))
+		product, err := service.GetProduct(ProductID("1"))
 
-	assert.Nil(t, err)
-	assert.Equal(t, expectedProduct, product)
-	mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
-}
+		assert.Nil(t, err)
+		assert.Equal(t, expectedProduct, product)
+		mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
+	})
 
-func TestGetAllProducts(t *testing.T) {
-	mockFindAllRepo := new(MockProductFindAllRepository)
-	service := NewProductService(nil, nil, mockFindAllRepo, nil)
+	t.Run("Product not found", func(t *testing.T) {
+		mockFindRepo := new(MockProductFindRepository)
+		service := NewProductService(nil, mockFindRepo, nil, nil)
 
-	expectedProducts := []*Product{
-		{ID: "1", Name: "Produto 1", Description: "Descrição 1", Price: 10.0},
-		{ID: "2", Name: "Produto 2", Description: "Descrição 2", Price: 20.0},
-	}
+		mockFindRepo.On("Find", ProductID("1")).Return(nil, errors.New("product not found"))
 
-	mockFindAllRepo.On("FindAll").Return(expectedProducts, nil)
+		product, err := service.GetProduct(ProductID("1"))
 
-	products, err := service.GetAllProducts()
+		assert.Nil(t, product)
+		assert.Equal(t, errors.New("product not found"), err)
+		mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
+	})
 
-	assert.Nil(t, err)
-	assert.Equal(t, expectedProducts, products)
-	mockFindAllRepo.AssertCalled(t, "FindAll")
+	t.Run("Repository error", func(t *testing.T) {
+		mockFindRepo := new(MockProductFindRepository)
+		service := NewProductService(nil, mockFindRepo, nil, nil)
+
+		mockFindRepo.On("Find", ProductID("1")).Return(nil, errors.New("database error"))
+
+		product, err := service.GetProduct(ProductID("1"))
+
+		assert.Nil(t, product)
+		assert.Equal(t, errors.New("database error"), err)
+		mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
+	})
+
+	t.Run("Invalid product ID", func(t *testing.T) {
+		mockFindRepo := new(MockProductFindRepository)
+		service := NewProductService(nil, mockFindRepo, nil, nil)
+
+		product, err := service.GetProduct("")
+
+		assert.Nil(t, product)
+		assert.Equal(t, errors.New("invalid product ID"), err)
+		mockFindRepo.AssertNotCalled(t, "Find")
+	})
 }
 
 func TestUpdateProduct(t *testing.T) {
@@ -178,23 +202,23 @@ func TestUpdateProduct(t *testing.T) {
 	service := NewProductService(mockSaveRepo, mockFindRepo, nil, nil)
 
 	productToUpdate := &Product{
-		ID:          ProductID("1"),
+		ID:          ProductID(ProductID("1")),
 		Name:        "Produto 1",
 		Description: "Descrição 1",
 		Price:       10.0,
 	}
 
-	mockFindRepo.On("Find", ProductID("1")).Return(productToUpdate, nil)
+	mockFindRepo.On("Find", ProductID(ProductID("1"))).Return(productToUpdate, nil)
 	mockSaveRepo.On("Save", mock.MatchedBy(func(p *Product) bool {
-		return p.ID == ProductID("1") && p.Name == "Produto Atualizado" && p.Description == "Descrição Atualizada" && p.Price == 20.0
+		return p.ID == ProductID(ProductID("1")) && p.Name == "Produto Atualizado" && p.Description == "Descrição Atualizada" && p.Price == 20.0
 	})).Return(nil)
 
-	_, err := service.UpdateProduct(ProductID("1"), "Produto Atualizado", "Descrição Atualizada", 20.0)
+	_, err := service.UpdateProduct(ProductID(ProductID("1")), "Produto Atualizado", "Descrição Atualizada", 20.0)
 
 	assert.Nil(t, err)
-	mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
+	mockFindRepo.AssertCalled(t, "Find", ProductID(ProductID("1")))
 	mockSaveRepo.AssertCalled(t, "Save", mock.MatchedBy(func(p *Product) bool {
-		return p.ID == ProductID("1") && p.Name == "Produto Atualizado" && p.Description == "Descrição Atualizada" && p.Price == 20.0
+		return p.ID == ProductID(ProductID("1")) && p.Name == "Produto Atualizado" && p.Description == "Descrição Atualizada" && p.Price == 20.0
 	}))
 }
 
@@ -203,12 +227,12 @@ func TestUpdateProductWhenFindRepositoryReturnError(t *testing.T) {
 	mockSaveRepo := new(MockProductSaveRepository)
 	service := NewProductService(mockSaveRepo, mockFindRepo, nil, nil)
 
-	mockFindRepo.On("Find", ProductID("1")).Return(nil, errors.New("error"))
+	mockFindRepo.On("Find", ProductID(ProductID("1"))).Return(nil, errors.New("error"))
 
-	_, err := service.UpdateProduct(ProductID("1"), "Produto Atualizado", "Descrição Atualizada", 20.0)
+	_, err := service.UpdateProduct(ProductID(ProductID("1")), "Produto Atualizado", "Descrição Atualizada", 20.0)
 
 	assert.NotNil(t, err)
-	mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
+	mockFindRepo.AssertCalled(t, "Find", ProductID(ProductID("1")))
 	mockSaveRepo.AssertNotCalled(t, "Save", mock.Anything)
 }
 
@@ -217,12 +241,12 @@ func TestUpdateProductWhenFindRepositoryReturnNil(t *testing.T) {
 	mockSaveRepo := new(MockProductSaveRepository)
 	service := NewProductService(mockSaveRepo, mockFindRepo, nil, nil)
 
-	mockFindRepo.On("Find", ProductID("1")).Return(nil, nil)
+	mockFindRepo.On("Find", ProductID(ProductID("1"))).Return(nil, nil)
 
-	_, err := service.UpdateProduct(ProductID("1"), "Produto Atualizado", "Descrição Atualizada", 20.0)
+	_, err := service.UpdateProduct(ProductID(ProductID("1")), "Produto Atualizado", "Descrição Atualizada", 20.0)
 
 	assert.NotNil(t, err)
-	mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
+	mockFindRepo.AssertCalled(t, "Find", ProductID(ProductID("1")))
 	mockSaveRepo.AssertNotCalled(t, "Save", mock.Anything)
 }
 
@@ -231,13 +255,13 @@ func TestUpdateProductWhenSaveRepositoryReturnErr(t *testing.T) {
 	mockSaveRepo := new(MockProductSaveRepository)
 	service := NewProductService(mockSaveRepo, mockFindRepo, nil, nil)
 
-	mockFindRepo.On("Find", ProductID("1")).Return(&Product{ID: "1"}, nil)
+	mockFindRepo.On("Find", ProductID(ProductID("1"))).Return(&Product{ID: ProductID("1")}, nil)
 	mockSaveRepo.On("Save", mock.Anything).Return(errors.New("error"))
 
-	_, err := service.UpdateProduct(ProductID("1"), "Produto Atualizado", "Descrição Atualizada", 20.0)
+	_, err := service.UpdateProduct(ProductID(ProductID("1")), "Produto Atualizado", "Descrição Atualizada", 20.0)
 
 	assert.NotNil(t, err)
-	mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
+	mockFindRepo.AssertCalled(t, "Find", ProductID(ProductID("1")))
 	mockSaveRepo.AssertCalled(t, "Save", mock.Anything)
 }
 
@@ -246,7 +270,7 @@ func TestDeleteProduct(t *testing.T) {
 	mockDeleteRepo := new(MockProductDeleteRepository)
 	service := NewProductService(nil, mockFindRepo, nil, mockDeleteRepo)
 
-	productID := ProductID("1")
+	productID := ProductID(ProductID("1"))
 
 	mockFindRepo.On("Find", productID).Return(&Product{ID: productID}, nil)
 	mockDeleteRepo.On("Delete", productID).Return(nil)
@@ -272,11 +296,11 @@ func TestDeleteProductWhenFindRepositoryReturnError(t *testing.T) {
 	mockDeleteRepo := new(MockProductDeleteRepository)
 	service := NewProductService(nil, mockFindRepo, nil, mockDeleteRepo)
 
-	mockFindRepo.On("Find", ProductID("1")).Return(nil, errors.New("error"))
+	mockFindRepo.On("Find", ProductID(ProductID("1"))).Return(nil, errors.New("error"))
 
-	err := service.DeleteProduct(ProductID("1"))
+	err := service.DeleteProduct(ProductID(ProductID("1")))
 	assert.NotNil(t, err)
-	mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
+	mockFindRepo.AssertCalled(t, "Find", ProductID(ProductID("1")))
 	mockDeleteRepo.AssertNotCalled(t, "Delete", mock.Anything)
 }
 
@@ -285,11 +309,11 @@ func TestDeleteProductWhenDeleteRepositoryReturnError(t *testing.T) {
 	mockDeleteRepo := new(MockProductDeleteRepository)
 	service := NewProductService(nil, mockFindRepo, nil, mockDeleteRepo)
 
-	mockFindRepo.On("Find", ProductID("1")).Return(&Product{ID: "1"}, nil)
-	mockDeleteRepo.On("Delete", ProductID("1")).Return(errors.New("error"))
+	mockFindRepo.On("Find", ProductID(ProductID("1"))).Return(&Product{ID: ProductID("1")}, nil)
+	mockDeleteRepo.On("Delete", ProductID(ProductID("1"))).Return(errors.New("error"))
 
-	err := service.DeleteProduct(ProductID("1"))
+	err := service.DeleteProduct(ProductID(ProductID("1")))
 	assert.NotNil(t, err)
-	mockFindRepo.AssertCalled(t, "Find", ProductID("1"))
-	mockDeleteRepo.AssertCalled(t, "Delete", ProductID("1"))
+	mockFindRepo.AssertCalled(t, "Find", ProductID(ProductID("1")))
+	mockDeleteRepo.AssertCalled(t, "Delete", ProductID(ProductID("1")))
 }
