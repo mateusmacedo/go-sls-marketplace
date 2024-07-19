@@ -1,7 +1,6 @@
 package application
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -52,7 +51,7 @@ func TestGetProductsUseCase_Execute(t *testing.T) {
 				Description: "Test Description",
 				Price:       10.99,
 				CreatedAt:   "2023-05-01 10:00:00",
-				UpdateAt:    "2023-05-02 11:00:00",
+				UpdatedAt:   "2023-05-02 11:00:00",
 			},
 			expectedError: nil,
 		},
@@ -60,10 +59,19 @@ func TestGetProductsUseCase_Execute(t *testing.T) {
 			name:  "Product not found",
 			input: GetProductInput{ID: "999"},
 			mockBehavior: func(m *MockProductFinder, id domain.ProductID) {
-				m.On("GetProduct", id).Return(nil, errors.New("product not found"))
+				m.On("GetProduct", id).Return(nil, domain.ErrNotFoundProduct)
 			},
 			expectedOutput: nil,
-			expectedError:  errors.New("product not found"),
+			expectedError:  domain.ErrNotFoundProduct,
+		},
+		{
+			name:  "Error when retrieving product",
+			input: GetProductInput{ID: "1"},
+			mockBehavior: func(m *MockProductFinder, id domain.ProductID) {
+				m.On("GetProduct", id).Return(nil, domain.ErrRepositoryProduct)
+			},
+			expectedOutput: nil,
+			expectedError:  domain.ErrRepositoryProduct,
 		},
 	}
 
