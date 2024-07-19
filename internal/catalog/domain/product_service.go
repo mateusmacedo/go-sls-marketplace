@@ -2,6 +2,10 @@ package domain
 
 import "errors"
 
+type ProductAdder interface {
+	AddProduct(id ProductID, name, description string, price float64) (*Product, error)
+}
+
 type ProductService struct {
 	saveRepository    ProductSaveRepository
 	findRepository    ProductFindRepository
