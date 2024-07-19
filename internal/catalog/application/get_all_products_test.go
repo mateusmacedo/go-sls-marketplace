@@ -1,7 +1,6 @@
 package application
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -24,43 +23,49 @@ func TestGetAllProductsUseCase_Execute(t *testing.T) {
 	testCases := []struct {
 		name             string
 		mockBehavior     func(*MockAllProductFinder)
-		expectedProducts []*domain.Product
+		expectedProducts []*GetAllProductsOutput
 		expectedError    error
 	}{
 		{
 			name: "Successful retrieval of products",
 			mockBehavior: func(m *MockAllProductFinder) {
+				createdAt := time.Date(2023, 5, 1, 10, 0, 0, 0, time.UTC)
+				updatedAt := time.Date(2023, 5, 2, 11, 0, 0, 0, time.UTC)
 				m.On("GetAllProducts").Return([]*domain.Product{
 					{
-						ID:          "1",
+						ID:          domain.ProductID("1"),
 						Name:        "Product 1",
 						Description: "Description 1",
 						Price:       10.0,
-						CreatedAt:   time.Now(),
-						UpdatedAt:   time.Now(),
+						CreatedAt:   createdAt,
+						UpdatedAt:   updatedAt,
 					},
 					{
 						ID:          "2",
 						Name:        "Product 2",
 						Description: "Description 2",
 						Price:       20.0,
-						CreatedAt:   time.Now(),
-						UpdatedAt:   time.Now(),
+						CreatedAt:   createdAt,
+						UpdatedAt:   updatedAt,
 					},
 				}, nil)
 			},
-			expectedProducts: []*domain.Product{
+			expectedProducts: []*GetAllProductsOutput{
 				{
 					ID:          "1",
 					Name:        "Product 1",
 					Description: "Description 1",
 					Price:       10.0,
+					CreatedAt:   "2023-05-01 10:00:00",
+					UpdatedAt:   "2023-05-02 11:00:00",
 				},
 				{
 					ID:          "2",
 					Name:        "Product 2",
 					Description: "Description 2",
 					Price:       20.0,
+					CreatedAt:   "2023-05-01 10:00:00",
+					UpdatedAt:   "2023-05-02 11:00:00",
 				},
 			},
 			expectedError: nil,
@@ -68,27 +73,23 @@ func TestGetAllProductsUseCase_Execute(t *testing.T) {
 		{
 			name: "Error retrieving products",
 			mockBehavior: func(m *MockAllProductFinder) {
-				m.On("GetAllProducts").Return([]*domain.Product(nil), errors.New("database error"))
+				m.On("GetAllProducts").Return([]*domain.Product{}, domain.ErrRepositoryProduct)
 			},
-			expectedProducts: []*domain.Product{},
-			expectedError:    errors.New("database error"),
+			expectedProducts: []*GetAllProductsOutput{},
+			expectedError:    domain.ErrRepositoryProduct,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc // capture range variable
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			// Create a new mock and use case for each test
 			mockFinder := new(MockAllProductFinder)
 			useCase := NewGetAllProductsUseCase(mockFinder)
 
-			// Set up mock behavior
 			tc.mockBehavior(mockFinder)
 
-			// Execute the use case
 			products, err := useCase.Execute()
 
-			// Check the results
 			if tc.expectedError != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
@@ -107,7 +108,6 @@ func TestGetAllProductsUseCase_Execute(t *testing.T) {
 				}
 			}
 
-			// Verify that all expected mock calls were made
 			mockFinder.AssertExpectations(t)
 		})
 	}
