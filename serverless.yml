@@ -26,3 +26,84 @@ provider:
   memorySize: 128
   apiGateway:
     shouldStartNameWithService: true
+  environment:
+    PRODUCTS_TABLE: ${self:service}-${self:provider.stage}-products
+
+functions:
+  addProduct:
+    handler: cmd/catalog/aws/api/gateway/add_product/main.go
+    runtime: provided.al2
+    environment:
+      PRODUCTS_TABLE: ${self:service}-${self:provider.stage}-products
+    events:
+      - http:
+          path: products
+          method: post
+          cors: true
+  deleteProduct:
+    handler: cmd/catalog/aws/api/gateway/delete_product/main.go
+    runtime: provided.al2
+    events:
+      - http:
+          path: products/{id}
+          method: delete
+          cors: true
+          request:
+            parameters:
+              paths:
+                id: true
+  getAllProducts:
+    handler: cmd/catalog/aws/api/gateway/get_all_products/main.go
+    runtime: provided.al2
+    events:
+      - http:
+          path: products
+          method: get
+          cors: true
+  getProduct:
+    handler: cmd/catalog/aws/api/gateway/get_product/main.go
+    runtime: provided.al2
+    events:
+      - http:
+          path: products/{id}
+          method: get
+          cors: true
+          request:
+            parameters:
+              paths:
+                id: true
+  updateProduct:
+    handler: cmd/catalog/aws/api/gateway/update_product/main.go
+    runtime: provided.al2
+    events:
+      - http:
+          path: products/{id}
+          method: put
+          cors: true
+          request:
+            parameters:
+              paths:
+                id: true
+
+package:
+  individually: true
+
+resources:
+  Resources:
+    ProductsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.PRODUCTS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: ${self:provider.apiName}-${self:provider.stage}
