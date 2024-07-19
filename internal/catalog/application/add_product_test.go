@@ -30,14 +30,14 @@ func TestProductAddUseCase_Execute(t *testing.T) {
 
 	testCases := []struct {
 		name           string
-		input          ProductAddInput
+		input          AddProductInput
 		mockBehavior   func()
 		expectedError  error
-		expectedOutput *ProductAddOutput
+		expectedOutput *AddProductOutput
 	}{
 		{
 			name: "Successful product addition",
-			input: ProductAddInput{
+			input: AddProductInput{
 				ID:          "123",
 				Name:        "Test Product",
 				Description: "A test product",
@@ -57,18 +57,18 @@ func TestProductAddUseCase_Execute(t *testing.T) {
 					}, nil)
 			},
 			expectedError: nil,
-			expectedOutput: &ProductAddOutput{
+			expectedOutput: &AddProductOutput{
 				ID:          "123",
 				Name:        "Test Product",
 				Description: "A test product",
 				Price:       9.99,
 				CreatedAt:   time.Now().Format("2006-01-02 15:04:05"),
-				UpdateAt:    time.Now().Format("2006-01-02 15:04:05"),
+				UpdatedAt:   time.Now().Format("2006-01-02 15:04:05"),
 			},
 		},
 		{
 			name: "Error adding product",
-			input: ProductAddInput{
+			input: AddProductInput{
 				ID:          "456",
 				Name:        "Failed Product",
 				Description: "This product will fail",
@@ -102,9 +102,9 @@ func TestProductAddUseCase_Execute(t *testing.T) {
 				assert.Equal(t, tc.expectedOutput.Price, output.Price)
 
 				// Verificar se as datas estão no formato correto
-				_, err := time.Parse("2006-01-02 15:04:05", output.CreatedAt)
+				_, err := time.Parse(time.RFC3339, output.CreatedAt)
 				assert.NoError(t, err)
-				_, err = time.Parse("2006-01-02 15:04:05", output.UpdateAt)
+				_, err = time.Parse(time.RFC3339, output.UpdatedAt)
 				assert.NoError(t, err)
 			}
 

@@ -1,34 +1,42 @@
 package application
 
-import "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+import (
+	"time"
 
-type ProductAddInput struct {
+	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+)
+
+type AddProductInput struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 }
 
-type ProductAddOutput struct {
+type AddProductOutput struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 	CreatedAt   string  `json:"created_at"`
-	UpdateAt    string  `json:"updated_at"`
+	UpdatedAt   string  `json:"updated_at"`
 }
 
-type AddProductUseCase struct {
+type AddProductUseCase interface {
+	Execute(input AddProductInput) (*AddProductOutput, error)
+}
+
+type addProductUseCase struct {
 	productAdder domain.ProductAdder
 }
 
-func NewProductAddUseCase(ProductAdder domain.ProductAdder) *AddProductUseCase {
-	return &AddProductUseCase{
+func NewProductAddUseCase(ProductAdder domain.ProductAdder) AddProductUseCase {
+	return &addProductUseCase{
 		productAdder: ProductAdder,
 	}
 }
 
-func (u *AddProductUseCase) Execute(input ProductAddInput) (*ProductAddOutput, error) {
+func (u *addProductUseCase) Execute(input AddProductInput) (*AddProductOutput, error) {
 	id := domain.ProductID(input.ID)
 	name := input.Name
 	description := input.Description
@@ -39,12 +47,12 @@ func (u *AddProductUseCase) Execute(input ProductAddInput) (*ProductAddOutput, e
 		return nil, err
 	}
 
-	return &ProductAddOutput{
+	return &AddProductOutput{
 		ID:          string(product.ID),
 		Name:        product.Name,
 		Description: product.Description,
 		Price:       product.Price,
-		CreatedAt:   product.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdateAt:    product.UpdatedAt.Format("2006-01-02 15:04:05"),
+		CreatedAt:   product.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   product.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }
