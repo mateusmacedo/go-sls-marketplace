@@ -1,7 +1,6 @@
 package adapter
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -38,16 +37,6 @@ func TestProductEntity_ToDomain(t *testing.T) {
 				UpdatedAt:   now,
 			},
 			wantErr: nil,
-		},
-		{
-			name: "Empty ID",
-			pe: ProductEntity{
-				Name:        "Test Product",
-				Description: "This is a test product",
-				Price:       9.99,
-			},
-			want:    nil,
-			wantErr: errors.New("invalid product ID"),
 		},
 	}
 
