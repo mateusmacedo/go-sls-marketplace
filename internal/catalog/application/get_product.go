@@ -19,7 +19,7 @@ type GetProductOutput struct {
 	UpdatedAt   string  `json:"updated_at"`
 }
 
-type GetProductsUseCase interface {
+type GetProductUseCase interface {
 	Execute(input GetProductInput) (*GetProductOutput, error)
 }
 
@@ -27,7 +27,7 @@ type getProductsUseCase struct {
 	productFinder domain.ProductFinder
 }
 
-func NewGetProductsUseCase(productFinder domain.ProductFinder) GetProductsUseCase {
+func NewGetProductUseCase(productFinder domain.ProductFinder) GetProductUseCase {
 	return &getProductsUseCase{
 		productFinder: productFinder,
 	}

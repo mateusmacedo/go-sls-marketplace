@@ -23,10 +23,10 @@ type GetProductResponse struct {
 }
 
 type NetHTTPGetProductAdapter struct {
-	useCase application.GetProductsUseCase
+	useCase application.GetProductUseCase
 }
 
-func NewNetHTTPGetProductAdapter(useCase application.GetProductsUseCase) *NetHTTPGetProductAdapter {
+func NewNetHTTPGetProductAdapter(useCase application.GetProductUseCase) *NetHTTPGetProductAdapter {
 	return &NetHTTPGetProductAdapter{
 		useCase: useCase,
 	}

@@ -79,7 +79,7 @@ func TestGetProductsUseCase_Execute(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			mockFinder := new(MockProductFinder)
-			useCase := NewGetProductsUseCase(mockFinder)
+			useCase := NewGetProductUseCase(mockFinder)
 
 			tc.mockBehavior(mockFinder, domain.ProductID(tc.input.ID))
 
