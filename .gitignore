@@ -3,3 +3,4 @@ node_modules
 **/volumes/**/*
 .bin/**
 cmd/catalog/catalog.db
+test/mocks/**
