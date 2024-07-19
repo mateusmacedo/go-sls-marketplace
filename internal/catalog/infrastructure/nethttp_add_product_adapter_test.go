@@ -34,6 +34,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 		mockError      error
 		expectedStatus int
 		expectedBody   interface{}
+		expectExecute  bool
 	}{
 		{
 			name: "Successful product addition",
@@ -61,6 +62,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 				CreatedAt:   fixedTime.Format(time.RFC3339),
 				UpdatedAt:   fixedTime.Format(time.RFC3339),
 			},
+			expectExecute: true,
 		},
 		{
 			name: "Failed product addition",
@@ -74,6 +76,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 			mockError:      errors.New("failed to add product"),
 			expectedStatus: http.StatusInternalServerError,
 			expectedBody:   "failed to add product\n",
+			expectExecute:  true,
 		},
 		{
 			name: "Invalid input - empty name",
@@ -87,6 +90,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 			mockError:      nil,
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   "Invalid product data\n",
+			expectExecute:  false,
 		},
 		{
 			name:           "Invalid JSON input",
@@ -95,13 +99,14 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 			mockError:      nil,
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   "invalid character 'i' looking for beginning of value\n",
+			expectExecute:  false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUseCase := new(MockAddProductUseCase)
-			if tt.mockOutput != nil || tt.mockError != nil {
+			if tt.expectExecute {
 				mockUseCase.On("Execute", mock.Anything).Return(tt.mockOutput, tt.mockError)
 			}
 
@@ -137,7 +142,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 				assert.Equal(t, tt.expectedBody, rr.Body.String())
 			}
 
-			if tt.mockOutput != nil || tt.mockError != nil {
+			if tt.expectExecute {
 				mockUseCase.AssertCalled(t, "Execute", mock.Anything)
 			} else {
 				mockUseCase.AssertNotCalled(t, "Execute", mock.Anything)
