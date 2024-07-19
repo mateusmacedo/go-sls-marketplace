@@ -10,6 +10,7 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 )
 
 type MockDeleteProductUseCase struct {
@@ -72,7 +73,7 @@ func TestNetHTTPDeleteProductAdapter_Handle(t *testing.T) {
 			input:          "1",
 			mockError:      nil,
 			expectedStatus: http.StatusMethodNotAllowed,
-			expectedBody:   ErrHttpMethodNotAllowed.Error() + "\n",
+			expectedBody:   pkghttp.ErrHttpMethodNotAllowed.Error() + "\n",
 			expectExecute:  false,
 			method:         http.MethodGet,
 		},

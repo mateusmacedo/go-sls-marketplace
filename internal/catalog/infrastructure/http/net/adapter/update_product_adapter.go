@@ -6,6 +6,8 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 )
 
 type UpdateProductRequest struct {
@@ -33,7 +35,7 @@ func NewNetHTTPUpdateProductAdapter(useCase application.UpdateProductUseCase) *N
 
 func (a *NetHTTPUpdateProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut && r.Method != http.MethodPatch {
-		http.Error(w, ErrHttpMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
+		http.Error(w, pkghttp.ErrHttpMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -58,7 +60,7 @@ func (a *NetHTTPUpdateProductAdapter) Handle(w http.ResponseWriter, r *http.Requ
 
 	product, err := a.useCase.Execute(input)
 	if err != nil {
-		http.Error(w, err.Error(), HttpError[err])
+		http.Error(w, err.Error(), infrahttp.HttpError[err])
 		return
 	}
 

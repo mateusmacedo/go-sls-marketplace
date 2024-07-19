@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
+	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 )
 
 type GetProductRequest struct {
@@ -32,7 +34,7 @@ func NewNetHTTPGetProductAdapter(useCase application.GetProductsUseCase) *NetHTT
 
 func (a *NetHTTPGetProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, ErrHttpMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
+		http.Error(w, pkghttp.ErrHttpMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -43,7 +45,7 @@ func (a *NetHTTPGetProductAdapter) Handle(w http.ResponseWriter, r *http.Request
 
 	product, err := a.useCase.Execute(input)
 	if err != nil {
-		http.Error(w, err.Error(), HttpError[err])
+		http.Error(w, err.Error(), infrahttp.HttpError[err])
 		return
 	}
 

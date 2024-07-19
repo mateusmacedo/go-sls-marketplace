@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
+	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
 )
 
 type GetAllProductsResponse struct {
@@ -34,7 +35,7 @@ func (a *NetHTTPGetAllProductsAdapter) Handle(w http.ResponseWriter, r *http.Req
 
 	products, err := a.useCase.Execute()
 	if err != nil {
-		http.Error(w, err.Error(), HttpError[err])
+		http.Error(w, err.Error(), infrahttp.HttpError[err])
 		return
 	}
 

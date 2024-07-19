@@ -12,6 +12,7 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 )
 
 type MockGetProductUseCase struct {
@@ -74,7 +75,7 @@ func TestNetHTTPGetProductAdapter_Handle(t *testing.T) {
 			mockProduct:    nil,
 			mockError:      nil,
 			expectedStatus: http.StatusMethodNotAllowed,
-			expectedBody:   ErrHttpMethodNotAllowed.Error() + "\n",
+			expectedBody:   pkghttp.ErrHttpMethodNotAllowed.Error() + "\n",
 		},
 	}
 
