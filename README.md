@@ -33,3 +33,9 @@ To test the system, you can use the following commands:
 # Run the tests
 go test ./... -timeout 10s -tags wireinject --cover --race
 ```
+
+To generate mocks for the interfaces, you can use the following commands:
+
+```bash
+mockgen -source=path/to/source/interface.go -destination=path/to/mocks/interface_mock.go -package=mocks
+```
