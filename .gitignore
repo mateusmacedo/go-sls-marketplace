@@ -2,3 +2,4 @@ node_modules
 .serverless
 **/volumes/**/*
 .bin/**
+cmd/catalog/catalog.db
