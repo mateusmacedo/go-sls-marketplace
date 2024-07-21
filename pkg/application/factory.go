@@ -1,7 +1,7 @@
 package application
 
 import (
-	"errors"
+	"fmt"
 )
 
 type Recipe struct {
@@ -27,13 +27,14 @@ func NewFactory(locator ServiceLocator) Factory {
 }
 
 func (f *factory) RegisterRecipe(name string, recipe Recipe) {
+	fmt.Printf("Registering recipe: %s\n", name)
 	f.recipes[name] = recipe
 }
 
 func (f *factory) Create(name string) (interface{}, error) {
 	recipe, exists := f.recipes[name]
 	if !exists {
-		return nil, errors.New("recipe not found")
+		return nil, fmt.Errorf("recipe %s not found", name)
 	}
 
 	dependencies := make(map[string]interface{})
@@ -45,5 +46,6 @@ func (f *factory) Create(name string) (interface{}, error) {
 		dependencies[depName] = dep
 	}
 
+	fmt.Printf("Creating use case: %s\n", name)
 	return recipe.Factory(dependencies)
 }

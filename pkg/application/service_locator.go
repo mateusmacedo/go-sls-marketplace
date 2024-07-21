@@ -1,7 +1,7 @@
 package application
 
 import (
-	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -24,6 +24,7 @@ func NewSimpleServiceLocator() *serviceLocator {
 func (sl *serviceLocator) Register(name string, dependency interface{}) {
 	sl.mu.Lock()
 	defer sl.mu.Unlock()
+	fmt.Printf("Registering dependency: %s\n", name)
 	sl.dependencies[name] = dependency
 }
 
@@ -32,7 +33,8 @@ func (sl *serviceLocator) Resolve(name string) (interface{}, error) {
 	defer sl.mu.RUnlock()
 	dependency, exists := sl.dependencies[name]
 	if !exists {
-		return nil, errors.New("dependency not found")
+		return nil, fmt.Errorf("dependency %s not found", name)
 	}
+	fmt.Printf("Resolving dependency: %s\n", name)
 	return dependency, nil
 }
