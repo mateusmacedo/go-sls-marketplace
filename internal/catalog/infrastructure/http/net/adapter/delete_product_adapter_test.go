@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -53,6 +54,14 @@ func TestNetHTTPDeleteProductAdapter_Handle(t *testing.T) {
 			mockServiceError:   pkghttp.ErrServiceError,
 			expectedStatusCode: infrahttp.HttpError[pkghttp.ErrServiceError],
 			expectedResponse:   map[string]interface{}{"error": pkghttp.ErrServiceError.Error()},
+		},
+		{
+			name:               "Service unknown error",
+			httpMethod:         http.MethodDelete,
+			productID:          "123",
+			mockServiceError:   errors.New("some service error"),
+			expectedStatusCode: http.StatusInternalServerError,
+			expectedResponse:   map[string]interface{}{"error": errors.New("some service error").Error()},
 		},
 		{
 			name:               "Success",
