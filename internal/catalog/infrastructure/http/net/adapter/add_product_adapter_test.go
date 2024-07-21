@@ -3,6 +3,7 @@ package adapter
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -46,6 +47,14 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 			mockError:          pkghttp.ErrServiceError,
 			expectedStatusCode: internalhttp.HttpError[pkghttp.ErrServiceError],
 			expectedResponse:   map[string]interface{}{"error": pkghttp.ErrServiceError.Error()},
+		},
+		{
+			name:               "Service unknown error",
+			httpMethod:         http.MethodPost,
+			requestBody:        `{"id":"1","name":"Product","description":"Description","price":10.0}`,
+			mockError:          errors.New("some service error"),
+			expectedStatusCode: http.StatusInternalServerError,
+			expectedResponse:   map[string]interface{}{"error": errors.New("some service error").Error()},
 		},
 		{
 			name:               "Success",
