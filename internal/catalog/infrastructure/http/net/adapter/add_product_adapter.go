@@ -26,15 +26,38 @@ type AddProductResponse struct {
 }
 
 type NetHTTPAddProductAdapter struct {
-	service application.AddProductUseCase
+	service     application.AddProductUseCase
+	methodGuard pkghttp.HttpMethodGuard
 }
 
-func NewNetHTTPAddProductAdapter(service application.AddProductUseCase) *NetHTTPAddProductAdapter {
-	return &NetHTTPAddProductAdapter{service: service}
+type HTTPAddProductAdapterOption func(*NetHTTPAddProductAdapter) error
+
+func WithService(service application.AddProductUseCase) HTTPAddProductAdapterOption {
+	return func(a *NetHTTPAddProductAdapter) error {
+		a.service = service
+		return nil
+	}
+}
+
+func WithMethodGuard(methodGuard pkghttp.HttpMethodGuard) HTTPAddProductAdapterOption {
+	return func(a *NetHTTPAddProductAdapter) error {
+		a.methodGuard = methodGuard
+		return nil
+	}
+}
+
+func NewNetHTTPAddProductAdapter(opts ...HTTPAddProductAdapterOption) *NetHTTPAddProductAdapter {
+	adapter := &NetHTTPAddProductAdapter{}
+
+	for _, opt := range opts {
+		opt(adapter)
+	}
+
+	return adapter
 }
 
 func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if a.methodGuard.IsMethodAllowed(http.MethodPost) {
 		http.Error(w, pkghttp.ErrHttpMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
 		return
 	}
