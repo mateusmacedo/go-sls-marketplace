@@ -1,105 +1,108 @@
 package adapter
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
-	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
 	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
+	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
-
-type MockDeleteProductUseCase struct {
-	mock.Mock
-}
-
-func (m *MockDeleteProductUseCase) Execute(input application.DeleteProductInput) error {
-	args := m.Called(input)
-	return args.Error(0)
-}
 
 func TestNetHTTPDeleteProductAdapter_Handle(t *testing.T) {
 	tests := []struct {
-		name           string
-		input          string
-		mockError      error
-		expectedStatus int
-		expectedBody   string
-		expectExecute  bool
-		method         string
+		name               string
+		httpMethod         string
+		productID          string
+		mockServiceError   error
+		expectedStatusCode int
+		expectedResponse   interface{}
 	}{
 		{
-			name:           "Successful product deletion",
-			input:          "1",
-			mockError:      nil,
-			expectedStatus: http.StatusNoContent,
-			expectedBody:   "",
-			expectExecute:  true,
-			method:         http.MethodDelete,
+			name:               "Method Not Allowed",
+			httpMethod:         http.MethodGet,
+			expectedStatusCode: http.StatusMethodNotAllowed,
+			expectedResponse:   map[string]interface{}{"error": pkghttp.ErrHttpMethodNotAllowed.Error()},
 		},
 		{
-			name:           "Product not found",
-			input:          "2",
-			mockError:      domain.ErrNotFoundProduct,
-			expectedStatus: http.StatusNotFound,
-			expectedBody:   domain.ErrNotFoundProduct.Error() + "\n",
-			expectExecute:  true,
-			method:         http.MethodDelete,
+			name:               "Invalid Product ID",
+			httpMethod:         http.MethodDelete,
+			productID:          "",
+			expectedStatusCode: infrahttp.HttpError[domain.ErrInvalidProductID],
+			expectedResponse:   map[string]interface{}{"error": domain.ErrInvalidProductID.Error()},
 		},
 		{
-			name:           "Invalid product ID",
-			input:          "",
-			mockError:      domain.ErrInvalidProductID,
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   domain.ErrInvalidProductID.Error() + "\n",
-			expectExecute:  false,
-			method:         http.MethodDelete,
+			name:               "Product Not Found",
+			httpMethod:         http.MethodDelete,
+			productID:          "123",
+			mockServiceError:   domain.ErrNotFoundProduct,
+			expectedStatusCode: infrahttp.HttpError[domain.ErrNotFoundProduct],
+			expectedResponse:   map[string]interface{}{"error": domain.ErrNotFoundProduct.Error()},
 		},
 		{
-			name:           "Internal server error",
-			input:          "3",
-			mockError:      domain.ErrRepositoryProduct,
-			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   domain.ErrRepositoryProduct.Error() + "\n",
-			expectExecute:  true,
-			method:         http.MethodDelete,
+			name:               "Service Error",
+			httpMethod:         http.MethodDelete,
+			productID:          "123",
+			mockServiceError:   pkghttp.ErrServiceError,
+			expectedStatusCode: infrahttp.HttpError[pkghttp.ErrServiceError],
+			expectedResponse:   map[string]interface{}{"error": pkghttp.ErrServiceError.Error()},
 		},
 		{
-			name:           "Method not allowed",
-			input:          "1",
-			mockError:      nil,
-			expectedStatus: http.StatusMethodNotAllowed,
-			expectedBody:   pkghttp.ErrHttpMethodNotAllowed.Error() + "\n",
-			expectExecute:  false,
-			method:         http.MethodGet,
+			name:               "Success",
+			httpMethod:         http.MethodDelete,
+			productID:          "123",
+			expectedStatusCode: http.StatusNoContent,
+			expectedResponse:   nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUseCase := new(MockDeleteProductUseCase)
-			if tt.expectExecute {
-				mockUseCase.On("Execute", mock.Anything).Return(tt.mockError)
+			mockCtrl := gomock.NewController(t)
+			defer mockCtrl.Finish()
+
+			mockService := mocks.NewMockDeleteProductUseCase(mockCtrl)
+			adapter := NewNetHTTPDeleteProductAdapter(mockService)
+
+			if tt.httpMethod == http.MethodDelete && tt.productID != "" {
+				if tt.mockServiceError != nil {
+					mockService.EXPECT().
+						Execute(gomock.Any()).
+						Return(tt.mockServiceError).Times(1)
+				} else {
+					mockService.EXPECT().
+						Execute(gomock.Any()).
+						Return(nil).Times(1)
+				}
 			}
 
-			adapter := NewNetHTTPDeleteProductAdapter(mockUseCase)
+			req := httptest.NewRequest(tt.httpMethod, "/products/"+tt.productID, nil)
+			rec := httptest.NewRecorder()
 
-			req, _ := http.NewRequest(tt.method, "/products/"+tt.input, nil)
-			rr := httptest.NewRecorder()
+			adapter.Handle(rec, req)
 
-			adapter.Handle(rr, req)
+			res := rec.Result()
+			defer res.Body.Close()
 
-			assert.Equal(t, tt.expectedStatus, rr.Code)
-			assert.Equal(t, tt.expectedBody, rr.Body.String())
+			assert.Equal(t, tt.expectedStatusCode, res.StatusCode)
 
-			if tt.expectExecute {
-				mockUseCase.AssertCalled(t, "Execute", mock.Anything)
+			if tt.expectedResponse != nil {
+				var actualBody map[string]interface{}
+				err := json.NewDecoder(res.Body).Decode(&actualBody)
+				if err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
+				assert.Equal(t, tt.expectedResponse, actualBody)
 			} else {
-				mockUseCase.AssertNotCalled(t, "Execute", mock.Anything)
+				body, _ := io.ReadAll(res.Body)
+				assert.Equal(t, 0, len(body))
 			}
 		})
 	}
