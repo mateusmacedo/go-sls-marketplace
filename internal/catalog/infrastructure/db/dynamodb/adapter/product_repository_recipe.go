@@ -1,29 +1,27 @@
 package adapter
 
-import "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
-
-func CreateProductSaveRepository(dependencies map[string]interface{}) (domain.ProductSaveRepository, error) {
+func CreateProductSaveRepository(dependencies map[string]interface{}) (interface{}, error) {
 	db := dependencies["dynamoDBAPI"].(DynamoDBAPI)
 	tableName := dependencies["dynamoTableName"].(string)
 
 	return NewDynamoDbProductSaveRepository(db, tableName), nil
 }
 
-func CreateProductFindRepository(dependencies map[string]interface{}) (domain.ProductFindRepository, error) {
+func CreateProductFindRepository(dependencies map[string]interface{}) (interface{}, error) {
 	db := dependencies["dynamoDBAPI"].(DynamoDBAPI)
 	tableName := dependencies["dynamoTableName"].(string)
 
 	return NewDynamoDbProductFindRepository(db, tableName), nil
 }
 
-func CreateProductFindAllRepository(dependencies map[string]interface{}) (domain.ProductFindAllRepository, error) {
+func CreateProductFindAllRepository(dependencies map[string]interface{}) (interface{}, error) {
 	db := dependencies["dynamoDBAPI"].(DynamoDBAPI)
 	tableName := dependencies["dynamoTableName"].(string)
 
 	return NewDynamoDbProductFindAllRepository(db, tableName), nil
 }
 
-func CreateProductDeleteRepository(dependencies map[string]interface{}) (domain.ProductDeleteRepository, error) {
+func CreateProductDeleteRepository(dependencies map[string]interface{}) (interface{}, error) {
 	db := dependencies["dynamoDBAPI"].(DynamoDBAPI)
 	tableName := dependencies["dynamoTableName"].(string)
 
