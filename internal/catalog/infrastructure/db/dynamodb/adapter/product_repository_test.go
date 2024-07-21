@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
-	"github.com/mateusmacedo/go-sls-marketplace/test/mocks"
+	"github.com/mateusmacedo/go-sls-marketplace/test/infrastructure/mocks"
 )
 
 func TestSaveProduct(t *testing.T) {

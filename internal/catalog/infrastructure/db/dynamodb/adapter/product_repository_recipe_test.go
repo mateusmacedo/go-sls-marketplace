@@ -6,7 +6,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mateusmacedo/go-sls-marketplace/test/mocks"
+	"github.com/mateusmacedo/go-sls-marketplace/test/infrastructure/mocks"
 )
 
 func TestCreateProductSaveRepository(t *testing.T) {
