@@ -13,9 +13,9 @@ type testCase struct {
 }
 
 func TestCreateProductRepositories(t *testing.T) {
-	db, _ := setupTestDB(t)
+	dbConn, _ := setupTestDB(t)
 	dependencies := map[string]interface{}{
-		"db": db,
+		"dbConn": dbConn,
 	}
 
 	// Wrapper functions to convert the return type to interface{}
