@@ -50,8 +50,12 @@ func (a *LambdaGetAllProductsAdapter) Handle(ctx context.Context, request events
 
 	products, err := a.service.Execute()
 	if err != nil {
+		statusCode, ok := infrahttp.HttpError[err]
+		if !ok {
+			statusCode = http.StatusInternalServerError
+		}
 		return events.APIGatewayProxyResponse{
-			StatusCode: infrahttp.HttpError[err],
+			StatusCode: statusCode,
 			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}
@@ -68,7 +72,7 @@ func (a *LambdaGetAllProductsAdapter) Handle(ctx context.Context, request events
 		}
 	}
 
-	responseBody, err := json.Marshal(response)
+	responseBody, err := json.Marshal(response) // TODO: test error
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,

@@ -11,7 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	intinfrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	pkginfrahttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
@@ -32,15 +33,25 @@ func TestLambdaGetAllProductsAdapter_Handle(t *testing.T) {
 		{
 			name:               "Method Not Allowed",
 			httpMethod:         http.MethodPost,
+			mockServiceResult:  nil,
 			expectedStatusCode: http.StatusMethodNotAllowed,
 			expectedResponse:   `{"error": "method not allowed"}`,
 		},
 		{
 			name:               "Service Error",
 			httpMethod:         http.MethodGet,
+			mockServiceResult:  nil,
 			mockServiceError:   errors.New("some service error"),
-			expectedStatusCode: infrahttp.HttpError[errors.New("some service error")],
+			expectedStatusCode: intinfrahttp.HttpError[pkginfrahttp.ErrServiceError],
 			expectedResponse:   `{"error": "some service error"}`,
+		},
+		{
+			name:               "Service unknown error",
+			httpMethod:         http.MethodGet,
+			mockServiceResult:  nil,
+			mockServiceError:   errors.New("some service unknown error"),
+			expectedStatusCode: intinfrahttp.HttpError[pkginfrahttp.ErrServiceError],
+			expectedResponse:   `{"error": "some service unknown error"}`,
 		},
 		{
 			name:       "Success",
