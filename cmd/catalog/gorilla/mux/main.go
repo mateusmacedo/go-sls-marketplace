@@ -35,21 +35,23 @@ func InitializeServer() (*mux.Router, error) {
 		return nil, err
 	}
 
-	productRepo := dbadapter.NewGormProductRepository(dbConn)
-
-	adderProductService := domain.NewProductAdder(productRepo, productRepo)
+	productFindRepo := dbadapter.NewGormProductFindRepository(dbConn)
+	productSaveRepo := dbadapter.NewGormProductSaveRepository(dbConn)
+	adderProductService := domain.NewProductAdder(productFindRepo, productSaveRepo)
 	addProductUseCase := application.NewAddProductUseCase(adderProductService)
 
-	deleterProductService := domain.NewProductDeleter(productRepo, productRepo)
+	productDeleteRepo := dbadapter.NewGormProductDeleteRepository(dbConn)
+	deleterProductService := domain.NewProductDeleter(productFindRepo, productDeleteRepo)
 	deleteProductUseCase := application.NewDeleteProductUseCase(deleterProductService)
 
-	fiderAllProductService := domain.NewAllProductFinder(productRepo)
+	productFindAllRepo := dbadapter.NewGormProductFindAllRepository(dbConn)
+	fiderAllProductService := domain.NewAllProductFinder(productFindAllRepo)
 	getAllProductsUseCase := application.NewGetAllProductsUseCase(fiderAllProductService)
 
-	finderProductService := domain.NewProductFinder(productRepo)
+	finderProductService := domain.NewProductFinder(productFindRepo)
 	getProductUseCase := application.NewGetProductUseCase(finderProductService)
 
-	updaterProductService := domain.NewProductUpdater(productRepo, productRepo)
+	updaterProductService := domain.NewProductUpdater(productFindRepo, productSaveRepo)
 	updateProductUseCase := application.NewUpdateProductUseCase(updaterProductService)
 
 	postHttpMethodGuard := pkghttp.NewHttpMethodGuard([]string{http.MethodPost})
