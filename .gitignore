@@ -3,7 +3,8 @@ node_modules
 **/volumes/**/*
 .bin/**
 cmd/catalog/catalog.db
-test/mocks/**
+test/mocks/**/*
 Local.session.sql
 catalog.db
 .vscode/**
+**/mocks/**/*

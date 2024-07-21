@@ -37,5 +37,22 @@ go test ./... -timeout 10s -tags wireinject --cover --race
 To generate mocks for the interfaces, you can use the following commands:
 
 ```bash
-mockgen -source=path/to/source/interface.go -destination=path/to/mocks/interface_mock.go -package=mocks
+mockgen -destination=test/domain/mocks/product_save_repository.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain ProductSaveRepository
+mockgen -destination=test/domain/mocks/product_find_repository.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain ProductFindRepository
+mockgen -destination=test/domain/mocks/product_find_all_repository.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain ProductFindAllRepository
+mockgen -destination=test/domain/mocks/product_delete_repository.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain ProductDeleteRepository
+mockgen -destination=test/domain/mocks/product_adder.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain ProductAdder
+mockgen -destination=test/domain/mocks/product_allproduct_finder.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain AllProductFinder
+mockgen -destination=test/domain/mocks/product_product_finder.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain ProductFinder
+mockgen -destination=test/domain/mocks/product_updater.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain ProductUpdater
+mockgen -destination=test/domain/mocks/product_deleter.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain ProductDeleter
+
+mockgen -destination=test/application/mocks/add_product_use_case.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application AddProductUseCase
+mockgen -destination=test/application/mocks/delete_product_use_case.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application DeleteProductUseCase
+mockgen -destination=test/application/mocks/get_all_products_use_case.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application GetAllProductsUseCase
+mockgen -destination=test/application/mocks/get_product_use_case.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application GetProductUseCase
+mockgen -destination=test/application/mocks/update_product_use_case.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application UpdateProductUseCase
+
+mockgen -destination=test/infrastructure/mocks/dynamo_dbapi.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/db/dynamodb/adapter DynamoDBAPI
+
 ```
