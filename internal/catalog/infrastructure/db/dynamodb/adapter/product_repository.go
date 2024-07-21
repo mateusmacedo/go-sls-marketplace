@@ -10,16 +10,16 @@ import (
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
 
-type dynamoDbProductRepository struct {
+type dynamoDbProductSaveRepository struct {
 	DB        DynamoDBAPI
 	TableName string
 }
 
-func NewDynamoDbProductRepository(db DynamoDBAPI, tableName string) domain.ProductRepository {
-	return &dynamoDbProductRepository{DB: db, TableName: tableName}
+func NewDynamoDbProductSaveRepository(db DynamoDBAPI, tableName string) domain.ProductSaveRepository {
+	return &dynamoDbProductSaveRepository{DB: db, TableName: tableName}
 }
 
-func (r *dynamoDbProductRepository) Save(product *domain.Product) error {
+func (r *dynamoDbProductSaveRepository) Save(product *domain.Product) error {
 	entity, err := NewProductEntityFromDomain(product)
 	if err != nil {
 		return err
@@ -37,7 +37,16 @@ func (r *dynamoDbProductRepository) Save(product *domain.Product) error {
 	return err
 }
 
-func (r *dynamoDbProductRepository) Find(id domain.ProductID) (*domain.Product, error) {
+type dynamoDbProductFindRepository struct {
+	DB        DynamoDBAPI
+	TableName string
+}
+
+func NewDynamoDbProductFindRepository(db DynamoDBAPI, tableName string) domain.ProductFindRepository {
+	return &dynamoDbProductFindRepository{DB: db, TableName: tableName}
+}
+
+func (r *dynamoDbProductFindRepository) Find(id domain.ProductID) (*domain.Product, error) {
 	result, err := r.DB.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: &r.TableName,
 		Key: map[string]types.AttributeValue{
@@ -62,7 +71,16 @@ func (r *dynamoDbProductRepository) Find(id domain.ProductID) (*domain.Product, 
 	return entity.ToDomain()
 }
 
-func (r *dynamoDbProductRepository) FindAll() ([]*domain.Product, error) {
+type dynamoDbProductFindAllRepository struct {
+	DB        DynamoDBAPI
+	TableName string
+}
+
+func NewDynamoDbProductFindAllRepository(db DynamoDBAPI, tableName string) domain.ProductFindAllRepository {
+	return &dynamoDbProductFindAllRepository{DB: db, TableName: tableName}
+}
+
+func (r *dynamoDbProductFindAllRepository) FindAll() ([]*domain.Product, error) {
 	result, err := r.DB.Scan(context.TODO(), &dynamodb.ScanInput{
 		TableName: &r.TableName,
 	})
@@ -86,7 +104,16 @@ func (r *dynamoDbProductRepository) FindAll() ([]*domain.Product, error) {
 	return products, nil
 }
 
-func (r *dynamoDbProductRepository) Delete(id domain.ProductID) error {
+type dynamoDbProductDeleteRepository struct {
+	DB        DynamoDBAPI
+	TableName string
+}
+
+func NewDynamoDbProductDeleteRepository(db DynamoDBAPI, tableName string) domain.ProductDeleteRepository {
+	return &dynamoDbProductDeleteRepository{DB: db, TableName: tableName}
+}
+
+func (r *dynamoDbProductDeleteRepository) Delete(id domain.ProductID) error {
 	_, err := r.DB.DeleteItem(context.TODO(), &dynamodb.DeleteItemInput{
 		TableName: &r.TableName,
 		Key: map[string]types.AttributeValue{

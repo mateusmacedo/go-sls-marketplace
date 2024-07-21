@@ -17,7 +17,7 @@ func TestSaveProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
-	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+	repo := NewDynamoDbProductSaveRepository(mockDB, "ProductsTable")
 
 	product := &domain.Product{
 		ID:    "1",
@@ -36,7 +36,7 @@ func TestSaveProductErrorWhenProductIsNil(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
-	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+	repo := NewDynamoDbProductSaveRepository(mockDB, "ProductsTable")
 
 	err := repo.Save(nil)
 	assert.Error(t, err)
@@ -47,7 +47,7 @@ func TestSaveProductErrorWhenMarshalMapFails(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
-	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+	repo := NewDynamoDbProductSaveRepository(mockDB, "ProductsTable")
 
 	product := &domain.Product{
 		ID:    "1",
@@ -66,7 +66,7 @@ func TestFindProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
-	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+	repo := NewDynamoDbProductFindRepository(mockDB, "ProductsTable")
 
 	productID := "1"
 	mockOutput := &dynamodb.GetItemOutput{
@@ -92,7 +92,7 @@ func TestFindProductErrorWhenDynamoDBGetItemFails(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
-	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+	repo := NewDynamoDbProductFindRepository(mockDB, "ProductsTable")
 
 	productID := "1"
 
@@ -108,7 +108,7 @@ func TestFindProductErrorWhenProductNotFound(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
-	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+	repo := NewDynamoDbProductFindRepository(mockDB, "ProductsTable")
 
 	productID := "1"
 
@@ -126,7 +126,7 @@ func TestFindAllProducts(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
-	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+	repo := NewDynamoDbProductFindAllRepository(mockDB, "ProductsTable")
 
 	mockOutput := &dynamodb.ScanOutput{
 		Items: []map[string]types.AttributeValue{
@@ -155,7 +155,7 @@ func TestFindAllProductsErrorWhenDynamoDBScanFails(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
-	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+	repo := NewDynamoDbProductFindAllRepository(mockDB, "ProductsTable")
 
 	mockDB.EXPECT().Scan(gomock.Any(), gomock.Any()).Return(nil, assert.AnError)
 
@@ -169,7 +169,7 @@ func TestDeleteProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
-	repo := NewDynamoDbProductRepository(mockDB, "ProductsTable")
+	repo := NewDynamoDbProductDeleteRepository(mockDB, "ProductsTable")
 
 	productID := "1"
 
