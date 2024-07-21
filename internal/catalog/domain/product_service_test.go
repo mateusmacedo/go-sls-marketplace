@@ -51,13 +51,11 @@ func TestAddProduct(t *testing.T) {
 	t.Run("Successful addition", func(t *testing.T) {
 		mockSaveRepo := new(MockProductSaveRepository)
 		mockFindRepo := new(MockProductFindRepository)
-		mockFindAllRepo := new(MockProductFindAllRepository)
-		mockDeleteRepo := new(MockProductDeleteRepository)
 
 		mockFindRepo.On("Find", mock.Anything).Return(nil, nil)
 		mockSaveRepo.On("Save", mock.Anything).Return(nil)
 
-		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
+		service := NewProductAdder(mockFindRepo, mockSaveRepo)
 
 		product, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
 
@@ -70,12 +68,10 @@ func TestAddProduct(t *testing.T) {
 	t.Run("Find repository returns error", func(t *testing.T) {
 		mockSaveRepo := new(MockProductSaveRepository)
 		mockFindRepo := new(MockProductFindRepository)
-		mockFindAllRepo := new(MockProductFindAllRepository)
-		mockDeleteRepo := new(MockProductDeleteRepository)
 
 		mockFindRepo.On("Find", mock.Anything).Return(nil, ErrRepositoryProduct)
 
-		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
+		service := NewProductAdder(mockFindRepo, mockSaveRepo)
 
 		_, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
 
@@ -87,12 +83,10 @@ func TestAddProduct(t *testing.T) {
 	t.Run("Product already exists", func(t *testing.T) {
 		mockSaveRepo := new(MockProductSaveRepository)
 		mockFindRepo := new(MockProductFindRepository)
-		mockFindAllRepo := new(MockProductFindAllRepository)
-		mockDeleteRepo := new(MockProductDeleteRepository)
 
 		mockFindRepo.On("Find", mock.Anything).Return(&Product{}, nil)
 
-		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
+		service := NewProductAdder(mockFindRepo, mockSaveRepo)
 
 		_, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
 
@@ -104,12 +98,10 @@ func TestAddProduct(t *testing.T) {
 	t.Run("Invalid product data", func(t *testing.T) {
 		mockSaveRepo := new(MockProductSaveRepository)
 		mockFindRepo := new(MockProductFindRepository)
-		mockFindAllRepo := new(MockProductFindAllRepository)
-		mockDeleteRepo := new(MockProductDeleteRepository)
 
 		mockFindRepo.On("Find", mock.Anything).Return(nil, nil)
 
-		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
+		service := NewProductAdder(mockFindRepo, mockSaveRepo)
 
 		_, err := service.AddProduct("", "", "Descrição Teste", -10.0)
 
@@ -121,13 +113,11 @@ func TestAddProduct(t *testing.T) {
 	t.Run("Save repository returns error", func(t *testing.T) {
 		mockSaveRepo := new(MockProductSaveRepository)
 		mockFindRepo := new(MockProductFindRepository)
-		mockFindAllRepo := new(MockProductFindAllRepository)
-		mockDeleteRepo := new(MockProductDeleteRepository)
 
 		mockFindRepo.On("Find", mock.Anything).Return(nil, nil)
 		mockSaveRepo.On("Save", mock.Anything).Return(ErrRepositoryProduct)
 
-		service := NewProductService(mockSaveRepo, mockFindRepo, mockFindAllRepo, mockDeleteRepo)
+		service := NewProductAdder(mockFindRepo, mockSaveRepo)
 
 		_, err := service.AddProduct("1", "Produto Teste", "Descrição Teste", 10.0)
 
@@ -140,7 +130,7 @@ func TestAddProduct(t *testing.T) {
 func TestGetProduct(t *testing.T) {
 	t.Run("Successful retrieval", func(t *testing.T) {
 		mockFindRepo := new(MockProductFindRepository)
-		service := NewProductService(nil, mockFindRepo, nil, nil)
+		service := NewProductFinder(mockFindRepo)
 
 		expectedProduct := &Product{
 			ID:          ProductID("1"),
@@ -160,7 +150,7 @@ func TestGetProduct(t *testing.T) {
 
 	t.Run("Product not found", func(t *testing.T) {
 		mockFindRepo := new(MockProductFindRepository)
-		service := NewProductService(nil, mockFindRepo, nil, nil)
+		service := NewProductFinder(mockFindRepo)
 
 		mockFindRepo.On("Find", ProductID("1")).Return(nil, ErrNotFoundProduct)
 
@@ -173,7 +163,7 @@ func TestGetProduct(t *testing.T) {
 
 	t.Run("Repository error", func(t *testing.T) {
 		mockFindRepo := new(MockProductFindRepository)
-		service := NewProductService(nil, mockFindRepo, nil, nil)
+		service := NewProductFinder(mockFindRepo)
 
 		mockFindRepo.On("Find", ProductID("1")).Return(nil, ErrRepositoryProduct)
 
@@ -186,7 +176,7 @@ func TestGetProduct(t *testing.T) {
 
 	t.Run("Invalid product ID", func(t *testing.T) {
 		mockFindRepo := new(MockProductFindRepository)
-		service := NewProductService(nil, mockFindRepo, nil, nil)
+		service := NewProductFinder(mockFindRepo)
 
 		product, err := service.GetProduct("")
 
@@ -240,7 +230,7 @@ func TestProductService_GetAllProducts(t *testing.T) {
 			mockFindRepo := new(MockProductFindAllRepository)
 			tc.setupMock(mockFindRepo)
 
-			service := NewProductService(nil, nil, mockFindRepo, nil)
+			service := NewAllProductFinder(mockFindRepo)
 
 			result, err := service.GetAllProducts()
 
@@ -262,7 +252,7 @@ func TestUpdateProduct(t *testing.T) {
 	t.Run("Successful update", func(t *testing.T) {
 		mockFindRepo := new(MockProductFindRepository)
 		mockSaveRepo := new(MockProductSaveRepository)
-		service := NewProductService(mockSaveRepo, mockFindRepo, nil, nil)
+		service := NewProductUpdater(mockFindRepo, mockSaveRepo)
 
 		existingProduct := &Product{
 			ID:          ProductID("1"),
@@ -297,7 +287,7 @@ func TestUpdateProduct(t *testing.T) {
 	t.Run("Product not found", func(t *testing.T) {
 		mockFindRepo := new(MockProductFindRepository)
 		mockSaveRepo := new(MockProductSaveRepository)
-		service := NewProductService(mockSaveRepo, mockFindRepo, nil, nil)
+		service := NewProductUpdater(mockFindRepo, mockSaveRepo)
 
 		mockFindRepo.On("Find", ProductID("1")).Return(nil, nil)
 
@@ -312,7 +302,7 @@ func TestUpdateProduct(t *testing.T) {
 	t.Run("Find repository error", func(t *testing.T) {
 		mockFindRepo := new(MockProductFindRepository)
 		mockSaveRepo := new(MockProductSaveRepository)
-		service := NewProductService(mockSaveRepo, mockFindRepo, nil, nil)
+		service := NewProductUpdater(mockFindRepo, mockSaveRepo)
 
 		mockFindRepo.On("Find", ProductID("1")).Return(nil, ErrRepositoryProduct)
 
@@ -327,7 +317,7 @@ func TestUpdateProduct(t *testing.T) {
 	t.Run("Save repository error", func(t *testing.T) {
 		mockFindRepo := new(MockProductFindRepository)
 		mockSaveRepo := new(MockProductSaveRepository)
-		service := NewProductService(mockSaveRepo, mockFindRepo, nil, nil)
+		service := NewProductUpdater(mockFindRepo, mockSaveRepo)
 
 		existingProduct := &Product{
 			ID:          ProductID("1"),
@@ -358,8 +348,7 @@ func TestUpdateProduct(t *testing.T) {
 		mockFindRepo.On("Find", ProductID("1")).Return(existingProduct, nil)
 
 		mockSaveRepo := new(MockProductSaveRepository)
-
-		service := NewProductService(mockSaveRepo, mockFindRepo, nil, nil)
+		service := NewProductUpdater(mockFindRepo, mockSaveRepo)
 
 		testCases := []struct {
 			name        string
@@ -474,7 +463,7 @@ func TestProductService_DeleteProduct(t *testing.T) {
 			mockDeleteRepo := new(MockProductDeleteRepository)
 			tc.setupMock(mockFindRepo, mockDeleteRepo)
 
-			service := NewProductService(nil, mockFindRepo, nil, mockDeleteRepo)
+			service := NewProductDeleter(mockFindRepo, mockDeleteRepo)
 
 			err := service.DeleteProduct(tc.productID)
 

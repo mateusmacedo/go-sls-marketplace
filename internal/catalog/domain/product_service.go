@@ -4,39 +4,19 @@ type ProductAdder interface {
 	AddProduct(id ProductID, name, description string, price float64) (*Product, error)
 }
 
-type AllProductFinder interface {
-	GetAllProducts() ([]*Product, error)
+type productAdder struct {
+	findRepository ProductFindRepository
+	saveRepository ProductSaveRepository
 }
 
-type ProductFinder interface {
-	GetProduct(id ProductID) (*Product, error)
-}
-
-type ProductUpdater interface {
-	UpdateProduct(id ProductID, name, description string, price float64) (*Product, error)
-}
-
-type ProductDeleter interface {
-	DeleteProduct(id ProductID) error
-}
-
-type ProductService struct {
-	saveRepository    ProductSaveRepository
-	findRepository    ProductFindRepository
-	findAllRepository ProductFindAllRepository
-	deleteRepository  ProductDeleteRepository
-}
-
-func NewProductService(saveRepository ProductSaveRepository, findRepository ProductFindRepository, findAllRepository ProductFindAllRepository, deleteRepository ProductDeleteRepository) *ProductService {
-	return &ProductService{
-		saveRepository:    saveRepository,
-		findRepository:    findRepository,
-		findAllRepository: findAllRepository,
-		deleteRepository:  deleteRepository,
+func NewProductAdder(findRepository ProductFindRepository, repository ProductSaveRepository) ProductAdder {
+	return &productAdder{
+		findRepository: findRepository,
+		saveRepository: repository,
 	}
 }
 
-func (s *ProductService) AddProduct(id ProductID, name, description string, price float64) (*Product, error) {
+func (s *productAdder) AddProduct(id ProductID, name, description string, price float64) (*Product, error) {
 	productExists, err := s.findRepository.Find(id)
 	if err != nil {
 		if err != ErrNotFoundProduct {
@@ -61,7 +41,21 @@ func (s *ProductService) AddProduct(id ProductID, name, description string, pric
 	return product, nil
 }
 
-func (s *ProductService) GetAllProducts() ([]*Product, error) {
+type AllProductFinder interface {
+	GetAllProducts() ([]*Product, error)
+}
+
+type allProductFinder struct {
+	findAllRepository ProductFindAllRepository
+}
+
+func NewAllProductFinder(findAllRepository ProductFindAllRepository) AllProductFinder {
+	return &allProductFinder{
+		findAllRepository: findAllRepository,
+	}
+}
+
+func (s *allProductFinder) GetAllProducts() ([]*Product, error) {
 	records, err := s.findAllRepository.FindAll()
 	if err != nil {
 		return nil, err
@@ -69,14 +63,44 @@ func (s *ProductService) GetAllProducts() ([]*Product, error) {
 	return records, nil
 }
 
-func (s *ProductService) GetProduct(id ProductID) (*Product, error) {
+type ProductFinder interface {
+	GetProduct(id ProductID) (*Product, error)
+}
+
+type productFinder struct {
+	findRepository ProductFindRepository
+}
+
+func NewProductFinder(findRepository ProductFindRepository) ProductFinder {
+	return &productFinder{
+		findRepository: findRepository,
+	}
+}
+
+func (s *productFinder) GetProduct(id ProductID) (*Product, error) {
 	if id == "" {
 		return nil, ErrInvalidProductID
 	}
 	return s.findRepository.Find(id)
 }
 
-func (s *ProductService) UpdateProduct(id ProductID, name, description string, price float64) (*Product, error) {
+type ProductUpdater interface {
+	UpdateProduct(id ProductID, name, description string, price float64) (*Product, error)
+}
+
+type productUpdater struct {
+	findRepository ProductFindRepository
+	saveRepository ProductSaveRepository
+}
+
+func NewProductUpdater(findRepository ProductFindRepository, saveRepository ProductSaveRepository) ProductUpdater {
+	return &productUpdater{
+		findRepository: findRepository,
+		saveRepository: saveRepository,
+	}
+}
+
+func (s *productUpdater) UpdateProduct(id ProductID, name, description string, price float64) (*Product, error) {
 	if id == "" {
 		return nil, ErrInvalidProductID
 	}
@@ -109,7 +133,23 @@ func (s *ProductService) UpdateProduct(id ProductID, name, description string, p
 	return product, nil
 }
 
-func (s *ProductService) DeleteProduct(id ProductID) error {
+type ProductDeleter interface {
+	DeleteProduct(id ProductID) error
+}
+
+type productDeleter struct {
+	findRepository   ProductFindRepository
+	deleteRepository ProductDeleteRepository
+}
+
+func NewProductDeleter(findRepository ProductFindRepository, deleteRepository ProductDeleteRepository) ProductDeleter {
+	return &productDeleter{
+		findRepository:   findRepository,
+		deleteRepository: deleteRepository,
+	}
+}
+
+func (s *productDeleter) DeleteProduct(id ProductID) error {
 	if id == "" {
 		return ErrInvalidProductID
 	}
