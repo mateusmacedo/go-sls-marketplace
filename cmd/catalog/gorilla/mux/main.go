@@ -14,6 +14,7 @@ import (
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 	dbadapter "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/db/gorm/adapter"
 	httpadapter "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/net/adapter"
+	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 )
 
 func InitializeServer() (*mux.Router, error) {
@@ -44,7 +45,13 @@ func InitializeServer() (*mux.Router, error) {
 	getProductUseCase := application.NewGetProductUseCase(productService)
 	updateProductUseCase := application.NewUpdateProductUseCase(productService)
 
-	addProductHandler := httpadapter.NewNetHTTPAddProductAdapter(addProductUseCase)
+	addProductHandler := httpadapter.NewNetHTTPAddProductAdapter(
+		httpadapter.WithService(addProductUseCase),
+		httpadapter.WithMethodGuard(
+			pkghttp.NewHttpMethodGuard([]string{http.MethodPost}),
+		),
+	)
+
 	deleteProductHandler := httpadapter.NewNetHTTPDeleteProductAdapter(deleteProductUseCase)
 	getAllProductsHandler := httpadapter.NewNetHTTPGetAllProductsAdapter(getAllProductsUseCase)
 	getProductHandler := httpadapter.NewNetHTTPGetProductAdapter(getProductUseCase)
