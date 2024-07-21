@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
@@ -85,12 +87,20 @@ func TestNetHTTPGetAllProductsAdapter_Handle(t *testing.T) {
 			expectedBody:   map[string]interface{}{"error": domain.ErrRepositoryProduct.Error()},
 		},
 		{
+			name:           "Service unknown error",
+			method:         http.MethodGet,
+			mockProducts:   nil,
+			mockError:      errors.New("some service error"),
+			expectedStatus: http.StatusInternalServerError,
+			expectedBody:   map[string]interface{}{"error": pkghttp.ErrServiceError.Error()},
+		},
+		{
 			name:           "Method not allowed",
 			method:         http.MethodPost,
 			mockProducts:   nil,
 			mockError:      nil,
 			expectedStatus: http.StatusMethodNotAllowed,
-			expectedBody:   map[string]interface{}{"error": "method not allowed"},
+			expectedBody:   map[string]interface{}{"error": pkghttp.ErrHttpMethodNotAllowed.Error()},
 		},
 	}
 
