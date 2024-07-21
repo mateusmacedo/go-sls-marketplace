@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	pkginfrahttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 )
 
 var HttpError = map[error]int{
@@ -14,4 +15,6 @@ var HttpError = map[error]int{
 	domain.ErrAlreadyExistsProduct:      http.StatusConflict,
 	domain.ErrNotFoundProduct:           http.StatusNotFound,
 	domain.ErrRepositoryProduct:         http.StatusInternalServerError,
+	pkginfrahttp.ErrHttpInvalidJSON:     http.StatusBadRequest,
+	pkginfrahttp.ErrServiceError:        http.StatusInternalServerError,
 }
