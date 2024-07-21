@@ -54,8 +54,12 @@ func (a *LambdaGetProductUseCaseAdapter) Handle(ctx context.Context, request eve
 		ID: id,
 	})
 	if err != nil {
+		statusCode, ok := infrahttp.HttpError[err]
+		if !ok {
+			statusCode = http.StatusInternalServerError
+		}
 		return events.APIGatewayProxyResponse{
-			StatusCode: infrahttp.HttpError[err],
+			StatusCode: statusCode,
 			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}

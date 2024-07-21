@@ -2,7 +2,6 @@ package adapter
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"testing"
 
@@ -11,7 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	intinfrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	pkginfrahttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
@@ -40,16 +41,16 @@ func TestLambdaGetProductUseCaseAdapter_Handle(t *testing.T) {
 			name:               "Product Not Found",
 			httpMethod:         http.MethodGet,
 			pathParameters:     map[string]string{"id": "999"},
-			mockServiceError:   errors.New("product not found"),
-			expectedStatusCode: infrahttp.HttpError[errors.New("product not found")],
+			mockServiceError:   domain.ErrNotFoundProduct,
+			expectedStatusCode: intinfrahttp.HttpError[domain.ErrNotFoundProduct],
 			expectedResponse:   `{"error": "product not found"}`,
 		},
 		{
 			name:               "Service Error",
 			httpMethod:         http.MethodGet,
 			pathParameters:     map[string]string{"id": "1"},
-			mockServiceError:   errors.New("some service error"),
-			expectedStatusCode: infrahttp.HttpError[errors.New("some service error")],
+			mockServiceError:   pkginfrahttp.ErrServiceError,
+			expectedStatusCode: intinfrahttp.HttpError[pkginfrahttp.ErrServiceError],
 			expectedResponse:   `{"error": "some service error"}`,
 		},
 		{
