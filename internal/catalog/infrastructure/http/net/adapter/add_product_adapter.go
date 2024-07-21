@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
+	_http "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	_adapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 )
 
 type AddProductRequest struct {
@@ -27,7 +27,7 @@ type AddProductResponse struct {
 
 type NetHTTPAddProductAdapter struct {
 	service     application.AddProductUseCase
-	methodGuard pkghttp.HttpMethodGuard
+	methodGuard _adapter.HttpMethodGuard
 }
 
 type HTTPAddProductAdapterOption func(*NetHTTPAddProductAdapter) error
@@ -39,7 +39,7 @@ func WithService(service application.AddProductUseCase) HTTPAddProductAdapterOpt
 	}
 }
 
-func WithMethodGuard(methodGuard pkghttp.HttpMethodGuard) HTTPAddProductAdapterOption {
+func WithMethodGuard(methodGuard _adapter.HttpMethodGuard) HTTPAddProductAdapterOption {
 	return func(a *NetHTTPAddProductAdapter) error {
 		a.methodGuard = methodGuard
 		return nil
@@ -58,7 +58,7 @@ func NewNetHTTPAddProductAdapter(opts ...HTTPAddProductAdapterOption) *NetHTTPAd
 
 func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if !a.methodGuard.IsMethodAllowed(r.Method) {
-		response := map[string]string{"error": pkghttp.ErrHttpMethodNotAllowed.Error()}
+		response := map[string]string{"error": _adapter.ErrHttpMethodNotAllowed.Error()}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(w).Encode(response)
@@ -67,9 +67,9 @@ func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request
 
 	var req AddProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response := map[string]string{"error": pkghttp.ErrHttpInvalidJSON.Error()}
+		response := map[string]string{"error": _adapter.ErrHttpInvalidJSON.Error()}
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(infrahttp.HttpError[pkghttp.ErrHttpInvalidJSON])
+		w.WriteHeader(_http.HttpError[_adapter.ErrHttpInvalidJSON])
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -81,10 +81,10 @@ func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request
 		Price:       req.Price,
 	})
 	if err != nil {
-		statusCode, ok := infrahttp.HttpError[err]
+		statusCode, ok := _http.HttpError[err]
 		if !ok {
-			err = pkghttp.ErrServiceError
-			statusCode = infrahttp.HttpError[err]
+			err = _adapter.ErrServiceError
+			statusCode = _http.HttpError[err]
 		}
 		response := map[string]string{"error": err.Error()}
 		w.Header().Set("Content-Type", "application/json")

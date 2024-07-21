@@ -6,8 +6,8 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
+	_http "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	_adapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 )
 
 type UpdateProductRequest struct {
@@ -36,7 +36,7 @@ func NewNetHTTPUpdateProductAdapter(useCase application.UpdateProductUseCase) *N
 func (a *NetHTTPUpdateProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut && r.Method != http.MethodPatch {
 		w.Header().Set("Content-Type", "application/json")
-		http.Error(w, `{"error": "`+pkghttp.ErrHttpMethodNotAllowed.Error()+`"}`, http.StatusMethodNotAllowed)
+		http.Error(w, `{"error": "`+_adapter.ErrHttpMethodNotAllowed.Error()+`"}`, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -65,7 +65,7 @@ func (a *NetHTTPUpdateProductAdapter) Handle(w http.ResponseWriter, r *http.Requ
 	product, err := a.useCase.Execute(input)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
-		http.Error(w, `{"error": "`+err.Error()+`"}`, infrahttp.HttpError[err])
+		http.Error(w, `{"error": "`+err.Error()+`"}`, _http.HttpError[err])
 		return
 	}
 

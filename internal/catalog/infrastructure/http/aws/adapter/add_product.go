@@ -12,6 +12,7 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 )
 
 type AddProductRequest struct {
@@ -51,7 +52,7 @@ func (a *LambdaAddProductAdapter) Handle(ctx context.Context, request events.API
 	if request.HTTPMethod != http.MethodPost {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusMethodNotAllowed,
-			Body:       `{"error": "method not allowed"}`,
+			Body:       `{"error": "` + pkghttp.ErrHttpMethodNotAllowed.Error() + `"}`,
 		}, nil
 	}
 

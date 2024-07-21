@@ -12,7 +12,7 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
+	_adapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
@@ -67,7 +67,7 @@ func TestNetHTTPGetProductAdapter_Handle(t *testing.T) {
 			mockProduct:    nil,
 			mockError:      nil,
 			expectedStatus: http.StatusMethodNotAllowed,
-			expectedBody:   map[string]interface{}{"error": pkghttp.ErrHttpMethodNotAllowed.Error()},
+			expectedBody:   map[string]interface{}{"error": _adapter.ErrHttpMethodNotAllowed.Error()},
 		},
 	}
 

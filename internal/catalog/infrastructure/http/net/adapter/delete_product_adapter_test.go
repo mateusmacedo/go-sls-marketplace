@@ -13,7 +13,7 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
+	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 

@@ -6,8 +6,8 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
+	_http "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	_adapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 )
 
 type DeleteProductRequest struct {
@@ -26,7 +26,7 @@ func NewNetHTTPDeleteProductAdapter(useCase application.DeleteProductUseCase) *N
 
 func (a *NetHTTPDeleteProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
-		response := map[string]string{"error": pkghttp.ErrHttpMethodNotAllowed.Error()}
+		response := map[string]string{"error": _adapter.ErrHttpMethodNotAllowed.Error()}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(w).Encode(response)
@@ -37,7 +37,7 @@ func (a *NetHTTPDeleteProductAdapter) Handle(w http.ResponseWriter, r *http.Requ
 	if productID == "" {
 		response := map[string]string{"error": domain.ErrInvalidProductID.Error()}
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(infrahttp.HttpError[domain.ErrInvalidProductID])
+		w.WriteHeader(_http.HttpError[domain.ErrInvalidProductID])
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -45,10 +45,10 @@ func (a *NetHTTPDeleteProductAdapter) Handle(w http.ResponseWriter, r *http.Requ
 		ID: productID,
 	})
 	if err != nil {
-		statusCode, ok := infrahttp.HttpError[err]
+		statusCode, ok := _http.HttpError[err]
 		if !ok {
-			err = pkghttp.ErrServiceError
-			statusCode = infrahttp.HttpError[err]
+			err = _adapter.ErrServiceError
+			statusCode = _http.HttpError[err]
 		}
 		response := map[string]string{"error": err.Error()}
 		w.Header().Set("Content-Type", "application/json")

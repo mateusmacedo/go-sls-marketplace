@@ -54,7 +54,6 @@ func initializeServiceLocator(dynamoClient *dynamodb.Client, tableName string) (
 	serviceLocator.Register("dynamoDBAPI", dynamoClient)
 	serviceLocator.Register("dynamoTableName", tableName)
 
-	// Repositories
 	repositories := map[string]func(map[string]interface{}) (interface{}, error){
 		"ProductSaveRepository": dynamodbadapter.CreateProductSaveRepository,
 		"ProductFindRepository": dynamodbadapter.CreateProductFindRepository,

@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	_http "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
 )
 
 type GetProductUseCaseResponse struct {
@@ -54,7 +54,7 @@ func (a *LambdaGetProductUseCaseAdapter) Handle(ctx context.Context, request eve
 		ID: id,
 	})
 	if err != nil {
-		statusCode, ok := infrahttp.HttpError[err]
+		statusCode, ok := _http.HttpError[err]
 		if !ok {
 			statusCode = http.StatusInternalServerError
 		}
@@ -73,7 +73,7 @@ func (a *LambdaGetProductUseCaseAdapter) Handle(ctx context.Context, request eve
 		UpdatedAt:   product.UpdatedAt,
 	}
 
-	responseBody, err := json.Marshal(res)
+	responseBody, err := json.Marshal(res) // TODO: Test error
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,

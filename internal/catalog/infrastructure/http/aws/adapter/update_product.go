@@ -12,8 +12,8 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
+	_http "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	_adapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 )
 
 type UpdateProductUseCaseRequest struct {
@@ -52,7 +52,7 @@ func (a *LambdaUpdateProductUseCaseAdapter) Handle(ctx context.Context, request 
 	if request.HTTPMethod != http.MethodPut && request.HTTPMethod != http.MethodPatch {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusMethodNotAllowed,
-			Body:       `{"error": "` + pkghttp.ErrHttpMethodNotAllowed.Error() + `"}`,
+			Body:       `{"error": "` + _adapter.ErrHttpMethodNotAllowed.Error() + `"}`,
 		}, nil
 	}
 
@@ -78,7 +78,7 @@ func (a *LambdaUpdateProductUseCaseAdapter) Handle(ctx context.Context, request 
 		Price:       req.Price,
 	})
 	if err != nil {
-		statusCode, ok := infrahttp.HttpError[err]
+		statusCode, ok := _http.HttpError[err]
 		if !ok {
 			statusCode = http.StatusInternalServerError
 		}
@@ -97,7 +97,7 @@ func (a *LambdaUpdateProductUseCaseAdapter) Handle(ctx context.Context, request 
 		UpdatedAt:   product.UpdatedAt,
 	}
 
-	responseBody, err := json.Marshal(res)
+	responseBody, err := json.Marshal(res) // TODO: Test error
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
