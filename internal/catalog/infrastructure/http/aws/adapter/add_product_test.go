@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkginfrahttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
+	httperror "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/error"
+	httpadapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
@@ -49,7 +49,7 @@ func TestLambdaAddProductAdapter_Handle(t *testing.T) {
 			httpMethod:         http.MethodPost,
 			requestBody:        `{"id":"1","name":"Product","description":"Description","price":10.0}`,
 			mockServiceError:   errors.New("some service error"),
-			expectedStatusCode: infrahttp.HttpError[pkginfrahttp.ErrServiceError],
+			expectedStatusCode: httperror.HttpError[httpadapter.ErrServiceError],
 			expectedResponse:   `{"error": "some service error"}`,
 		},
 		{

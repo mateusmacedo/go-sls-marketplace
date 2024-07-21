@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	_http "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	_adapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
+	httperror "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/error"
+	httpadapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
@@ -31,7 +31,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 			name:               "Method Not Allowed",
 			httpMethod:         http.MethodGet,
 			expectedStatusCode: http.StatusMethodNotAllowed,
-			expectedResponse:   map[string]interface{}{"error": _adapter.ErrHttpMethodNotAllowed.Error()},
+			expectedResponse:   map[string]interface{}{"error": httpadapter.ErrHttpMethodNotAllowed.Error()},
 		},
 		{
 			name:               "Invalid JSON",
@@ -44,9 +44,9 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 			name:               "Service Error",
 			httpMethod:         http.MethodPost,
 			requestBody:        `{"id":"1","name":"Product","description":"Description","price":10.0}`,
-			mockError:          _adapter.ErrServiceError,
-			expectedStatusCode: _http.HttpError[_adapter.ErrServiceError],
-			expectedResponse:   map[string]interface{}{"error": _adapter.ErrServiceError.Error()},
+			mockError:          httpadapter.ErrServiceError,
+			expectedStatusCode: httperror.HttpError[httpadapter.ErrServiceError],
+			expectedResponse:   map[string]interface{}{"error": httpadapter.ErrServiceError.Error()},
 		},
 		{
 			name:               "Service unknown error",
@@ -72,7 +72,7 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 			defer mockCtrl.Finish()
 
 			mockService := mocks.NewMockAddProductUseCase(mockCtrl)
-			methodGuard := _adapter.NewHttpMethodGuard([]string{http.MethodPost})
+			methodGuard := httpadapter.NewHttpMethodGuard([]string{http.MethodPost})
 
 			adapter := NewNetHTTPAddProductAdapter(
 				WithService(mockService),

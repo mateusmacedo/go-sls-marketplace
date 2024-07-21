@@ -11,8 +11,8 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
-	intinfrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkginfrahttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
+	httperror "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/error"
+	httpadapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
@@ -42,15 +42,15 @@ func TestLambdaGetProductUseCaseAdapter_Handle(t *testing.T) {
 			httpMethod:         http.MethodGet,
 			pathParameters:     map[string]string{"id": "999"},
 			mockServiceError:   domain.ErrNotFoundProduct,
-			expectedStatusCode: intinfrahttp.HttpError[domain.ErrNotFoundProduct],
+			expectedStatusCode: httperror.HttpError[domain.ErrNotFoundProduct],
 			expectedResponse:   `{"error": "product not found"}`,
 		},
 		{
 			name:               "Service Error",
 			httpMethod:         http.MethodGet,
 			pathParameters:     map[string]string{"id": "1"},
-			mockServiceError:   pkginfrahttp.ErrServiceError,
-			expectedStatusCode: intinfrahttp.HttpError[pkginfrahttp.ErrServiceError],
+			mockServiceError:   httpadapter.ErrServiceError,
+			expectedStatusCode: httperror.HttpError[httpadapter.ErrServiceError],
 			expectedResponse:   `{"error": "some service error"}`,
 		},
 		{

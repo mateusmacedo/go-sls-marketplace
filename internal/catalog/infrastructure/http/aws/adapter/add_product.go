@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
+	httperror "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/error"
+	httpadapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 )
 
 type AddProductRequest struct {
@@ -52,7 +52,7 @@ func (a *LambdaAddProductAdapter) Handle(ctx context.Context, request events.API
 	if request.HTTPMethod != http.MethodPost {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusMethodNotAllowed,
-			Body:       `{"error": "` + pkghttp.ErrHttpMethodNotAllowed.Error() + `"}`,
+			Body:       `{"error": "` + httpadapter.ErrHttpMethodNotAllowed.Error() + `"}`,
 		}, nil
 	}
 
@@ -71,7 +71,7 @@ func (a *LambdaAddProductAdapter) Handle(ctx context.Context, request events.API
 		Price:       req.Price,
 	})
 	if err != nil {
-		statusCode, ok := infrahttp.HttpError[err]
+		statusCode, ok := httperror.HttpError[err]
 		if !ok {
 			statusCode = http.StatusInternalServerError
 		}

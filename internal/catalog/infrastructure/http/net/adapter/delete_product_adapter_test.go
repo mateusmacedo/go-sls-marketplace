@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
+	httperror "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/error"
+	httpadapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
@@ -30,13 +30,13 @@ func TestNetHTTPDeleteProductAdapter_Handle(t *testing.T) {
 			name:               "Method Not Allowed",
 			httpMethod:         http.MethodGet,
 			expectedStatusCode: http.StatusMethodNotAllowed,
-			expectedResponse:   map[string]interface{}{"error": pkghttp.ErrHttpMethodNotAllowed.Error()},
+			expectedResponse:   map[string]interface{}{"error": httpadapter.ErrHttpMethodNotAllowed.Error()},
 		},
 		{
 			name:               "Invalid Product ID",
 			httpMethod:         http.MethodDelete,
 			productID:          "",
-			expectedStatusCode: infrahttp.HttpError[domain.ErrInvalidProductID],
+			expectedStatusCode: httperror.HttpError[domain.ErrInvalidProductID],
 			expectedResponse:   map[string]interface{}{"error": domain.ErrInvalidProductID.Error()},
 		},
 		{
@@ -44,16 +44,16 @@ func TestNetHTTPDeleteProductAdapter_Handle(t *testing.T) {
 			httpMethod:         http.MethodDelete,
 			productID:          "123",
 			mockServiceError:   domain.ErrNotFoundProduct,
-			expectedStatusCode: infrahttp.HttpError[domain.ErrNotFoundProduct],
+			expectedStatusCode: httperror.HttpError[domain.ErrNotFoundProduct],
 			expectedResponse:   map[string]interface{}{"error": domain.ErrNotFoundProduct.Error()},
 		},
 		{
 			name:               "Service Error",
 			httpMethod:         http.MethodDelete,
 			productID:          "123",
-			mockServiceError:   pkghttp.ErrServiceError,
-			expectedStatusCode: infrahttp.HttpError[pkghttp.ErrServiceError],
-			expectedResponse:   map[string]interface{}{"error": pkghttp.ErrServiceError.Error()},
+			mockServiceError:   httpadapter.ErrServiceError,
+			expectedStatusCode: httperror.HttpError[httpadapter.ErrServiceError],
+			expectedResponse:   map[string]interface{}{"error": httpadapter.ErrServiceError.Error()},
 		},
 		{
 			name:               "Service unknown error",

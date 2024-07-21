@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	intinfrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkginfrahttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
+	httperror "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/error"
+	httpadapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
@@ -42,7 +42,7 @@ func TestLambdaGetAllProductsAdapter_Handle(t *testing.T) {
 			httpMethod:         http.MethodGet,
 			mockServiceResult:  nil,
 			mockServiceError:   errors.New("some service error"),
-			expectedStatusCode: intinfrahttp.HttpError[pkginfrahttp.ErrServiceError],
+			expectedStatusCode: httperror.HttpError[httpadapter.ErrServiceError],
 			expectedResponse:   `{"error": "some service error"}`,
 		},
 		{
@@ -50,7 +50,7 @@ func TestLambdaGetAllProductsAdapter_Handle(t *testing.T) {
 			httpMethod:         http.MethodGet,
 			mockServiceResult:  nil,
 			mockServiceError:   errors.New("some service unknown error"),
-			expectedStatusCode: intinfrahttp.HttpError[pkginfrahttp.ErrServiceError],
+			expectedStatusCode: httperror.HttpError[httpadapter.ErrServiceError],
 			expectedResponse:   `{"error": "some service unknown error"}`,
 		},
 		{

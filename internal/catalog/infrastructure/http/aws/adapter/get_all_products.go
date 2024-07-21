@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	httperror "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/error"
 )
 
 type GetAllProductsResponse struct {
@@ -50,7 +50,7 @@ func (a *LambdaGetAllProductsAdapter) Handle(ctx context.Context, request events
 
 	products, err := a.service.Execute()
 	if err != nil {
-		statusCode, ok := infrahttp.HttpError[err]
+		statusCode, ok := httperror.HttpError[err]
 		if !ok {
 			statusCode = http.StatusInternalServerError
 		}

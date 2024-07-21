@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	_http "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	httperror "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/error"
 )
 
 type GetProductUseCaseResponse struct {
@@ -54,7 +54,7 @@ func (a *LambdaGetProductUseCaseAdapter) Handle(ctx context.Context, request eve
 		ID: id,
 	})
 	if err != nil {
-		statusCode, ok := _http.HttpError[err]
+		statusCode, ok := httperror.HttpError[err]
 		if !ok {
 			statusCode = http.StatusInternalServerError
 		}

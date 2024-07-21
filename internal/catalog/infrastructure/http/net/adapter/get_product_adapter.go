@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	_http "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	_adapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
+	httperror "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http/error"
+	httpadapter "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http/adapter"
 )
 
 type GetProductRequest struct {
@@ -35,7 +35,7 @@ func NewNetHTTPGetProductAdapter(useCase application.GetProductUseCase) *NetHTTP
 func (a *NetHTTPGetProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")
-		http.Error(w, `{"error": "`+_adapter.ErrHttpMethodNotAllowed.Error()+`"}`, http.StatusMethodNotAllowed)
+		http.Error(w, `{"error": "`+httpadapter.ErrHttpMethodNotAllowed.Error()+`"}`, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -47,7 +47,7 @@ func (a *NetHTTPGetProductAdapter) Handle(w http.ResponseWriter, r *http.Request
 	product, err := a.useCase.Execute(input)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
-		http.Error(w, `{"error": "`+err.Error()+`"}`, _http.HttpError[err])
+		http.Error(w, `{"error": "`+err.Error()+`"}`, httperror.HttpError[err])
 		return
 	}
 
