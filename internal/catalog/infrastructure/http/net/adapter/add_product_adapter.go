@@ -57,7 +57,7 @@ func NewNetHTTPAddProductAdapter(opts ...HTTPAddProductAdapterOption) *NetHTTPAd
 }
 
 func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
-	if a.methodGuard.IsMethodAllowed(http.MethodPost) {
+	if !a.methodGuard.IsMethodAllowed(r.Method) {
 		http.Error(w, pkghttp.ErrHttpMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
 		return
 	}

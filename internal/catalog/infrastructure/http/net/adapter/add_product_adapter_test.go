@@ -25,11 +25,11 @@ func (m *MockAddProductUseCase) Execute(input application.AddProductInput) (*app
 	return args.Get(0).(*application.AddProductOutput), args.Error(1)
 }
 
-type MockHttpMethodGuard struct {
+type MockMethodGuard struct {
 	mock.Mock
 }
 
-func (m *MockHttpMethodGuard) IsMethodAllowed(method string) bool {
+func (m *MockMethodGuard) IsMethodAllowed(method string) bool {
 	args := m.Called(method)
 	return args.Bool(0)
 }
@@ -131,11 +131,15 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUseCase := new(MockAddProductUseCase)
-			mockMethodGuard := new(MockHttpMethodGuard)
+			mockMethodGuard := new(MockMethodGuard)
 			if tt.expectExecute {
 				mockUseCase.On("Execute", mock.Anything).Return(tt.mockOutput, tt.mockError)
 			}
+			// Configure o mock para retornar true apenas quando IsMethodAllowed for chamado com http.MethodPost
 			mockMethodGuard.On("IsMethodAllowed", http.MethodPost).Return(true)
+
+			// Configure o mock para retornar false para qualquer outro valor
+			mockMethodGuard.On("IsMethodAllowed", mock.Anything).Return(false)
 
 			adapter := NewNetHTTPAddProductAdapter(WithService(mockUseCase), WithMethodGuard(mockMethodGuard))
 
@@ -171,12 +175,11 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 
 			if tt.expectExecute {
 				mockUseCase.AssertCalled(t, "Execute", mock.Anything)
-
 			} else {
 				mockUseCase.AssertNotCalled(t, "Execute", mock.Anything)
 			}
 
-			mockMethodGuard.AssertCalled(t, "IsMethodAllowed", http.MethodPost)
+			mockMethodGuard.AssertCalled(t, "IsMethodAllowed", tt.method)
 		})
 	}
 }
