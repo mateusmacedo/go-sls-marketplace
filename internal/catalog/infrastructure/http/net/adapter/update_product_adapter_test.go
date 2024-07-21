@@ -8,24 +8,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
-type MockUpdateProductUseCase struct {
-	mock.Mock
-}
-
-func (m *MockUpdateProductUseCase) Execute(input application.UpdateProductInput) (*application.UpdateProductOutput, error) {
-	args := m.Called(input)
-	return args.Get(0).(*application.UpdateProductOutput), args.Error(1)
-}
-
 func TestNetHTTPUpdateProductAdapter_Handle(t *testing.T) {
-	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC).Format(time.RFC3339)
 
 	tests := []struct {
 		name           string
@@ -34,7 +26,7 @@ func TestNetHTTPUpdateProductAdapter_Handle(t *testing.T) {
 		mockOutput     *application.UpdateProductOutput
 		mockError      error
 		expectedStatus int
-		expectedBody   interface{}
+		expectedBody   map[string]interface{}
 		expectExecute  bool
 		method         string
 	}{
@@ -51,18 +43,18 @@ func TestNetHTTPUpdateProductAdapter_Handle(t *testing.T) {
 				Name:        "Updated Product",
 				Description: "An updated product",
 				Price:       19.99,
-				CreatedAt:   fixedTime.Format(time.RFC3339),
-				UpdatedAt:   fixedTime.Format(time.RFC3339),
+				CreatedAt:   fixedTime,
+				UpdatedAt:   fixedTime,
 			},
 			mockError:      nil,
 			expectedStatus: http.StatusOK,
-			expectedBody: UpdateProductResponse{
-				ID:          "1",
-				Name:        "Updated Product",
-				Description: "An updated product",
-				Price:       19.99,
-				CreatedAt:   fixedTime.Format(time.RFC3339),
-				UpdatedAt:   fixedTime.Format(time.RFC3339),
+			expectedBody: map[string]interface{}{
+				"id":          "1",
+				"name":        "Updated Product",
+				"description": "An updated product",
+				"price":       19.99,
+				"created_at":  fixedTime,
+				"updated_at":  fixedTime,
 			},
 			expectExecute: true,
 			method:        http.MethodPut,
@@ -78,7 +70,7 @@ func TestNetHTTPUpdateProductAdapter_Handle(t *testing.T) {
 			mockOutput:     nil,
 			mockError:      domain.ErrRepositoryProduct,
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   domain.ErrRepositoryProduct.Error() + "\n",
+			expectedBody:   map[string]interface{}{"error": domain.ErrRepositoryProduct.Error()},
 			expectExecute:  true,
 			method:         http.MethodPut,
 		},
@@ -93,7 +85,7 @@ func TestNetHTTPUpdateProductAdapter_Handle(t *testing.T) {
 			mockOutput:     nil,
 			mockError:      nil,
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   domain.ErrInvalidProductID.Error() + "\n",
+			expectedBody:   map[string]interface{}{"error": domain.ErrInvalidProductID.Error()},
 			expectExecute:  false,
 			method:         http.MethodPut,
 		},
@@ -108,7 +100,7 @@ func TestNetHTTPUpdateProductAdapter_Handle(t *testing.T) {
 			mockOutput:     nil,
 			mockError:      domain.ErrInvalidProductName,
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   domain.ErrInvalidProductName.Error() + "\n",
+			expectedBody:   map[string]interface{}{"error": domain.ErrInvalidProductName.Error()},
 			expectExecute:  true,
 			method:         http.MethodPut,
 		},
@@ -119,7 +111,7 @@ func TestNetHTTPUpdateProductAdapter_Handle(t *testing.T) {
 			mockOutput:     nil,
 			mockError:      nil,
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "invalid character 'i' looking for beginning of value\n",
+			expectedBody:   map[string]interface{}{"error": "invalid character 'i' looking for beginning of value"},
 			expectExecute:  false,
 			method:         http.MethodPut,
 		},
@@ -130,7 +122,7 @@ func TestNetHTTPUpdateProductAdapter_Handle(t *testing.T) {
 			mockOutput:     nil,
 			mockError:      nil,
 			expectedStatus: http.StatusMethodNotAllowed,
-			expectedBody:   "method not allowed\n",
+			expectedBody:   map[string]interface{}{"error": "method not allowed"},
 			expectExecute:  false,
 			method:         http.MethodGet,
 		},
@@ -138,9 +130,14 @@ func TestNetHTTPUpdateProductAdapter_Handle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUseCase := new(MockUpdateProductUseCase)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUseCase := mocks.NewMockUpdateProductUseCase(ctrl)
 			if tt.expectExecute {
-				mockUseCase.On("Execute", mock.Anything).Return(tt.mockOutput, tt.mockError)
+				mockUseCase.EXPECT().Execute(gomock.Any()).Return(tt.mockOutput, tt.mockError)
+			} else {
+				mockUseCase.EXPECT().Execute(gomock.Any()).Times(0)
 			}
 
 			adapter := NewNetHTTPUpdateProductAdapter(mockUseCase)
@@ -161,25 +158,12 @@ func TestNetHTTPUpdateProductAdapter_Handle(t *testing.T) {
 
 			assert.Equal(t, tt.expectedStatus, rr.Code)
 
-			if tt.expectedStatus == http.StatusOK {
-				var response UpdateProductResponse
-				err := json.Unmarshal(rr.Body.Bytes(), &response)
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedBody.(UpdateProductResponse).ID, response.ID)
-				assert.Equal(t, tt.expectedBody.(UpdateProductResponse).Name, response.Name)
-				assert.Equal(t, tt.expectedBody.(UpdateProductResponse).Description, response.Description)
-				assert.Equal(t, tt.expectedBody.(UpdateProductResponse).Price, response.Price)
-				assert.Equal(t, tt.expectedBody.(UpdateProductResponse).CreatedAt, response.CreatedAt)
-				assert.Equal(t, tt.expectedBody.(UpdateProductResponse).UpdatedAt, response.UpdatedAt)
-			} else {
-				assert.Equal(t, tt.expectedBody, rr.Body.String())
-			}
+			var responseBody map[string]interface{}
+			err = json.Unmarshal(rr.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
 
-			if tt.expectExecute {
-				mockUseCase.AssertCalled(t, "Execute", mock.Anything)
-			} else {
-				mockUseCase.AssertNotCalled(t, "Execute", mock.Anything)
-			}
+			assert.Equal(t, tt.expectedBody, responseBody)
+
 		})
 	}
 }

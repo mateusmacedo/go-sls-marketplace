@@ -35,19 +35,22 @@ func NewNetHTTPUpdateProductAdapter(useCase application.UpdateProductUseCase) *N
 
 func (a *NetHTTPUpdateProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut && r.Method != http.MethodPatch {
-		http.Error(w, pkghttp.ErrHttpMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, `{"error": "`+pkghttp.ErrHttpMethodNotAllowed.Error()+`"}`, http.StatusMethodNotAllowed)
 		return
 	}
 
 	productID := r.URL.Path[len("/products/"):]
 	if productID == "" {
-		http.Error(w, domain.ErrInvalidProductID.Error(), http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, `{"error": "`+domain.ErrInvalidProductID.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
 
 	var req UpdateProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, `{"error": "`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
 
@@ -58,9 +61,11 @@ func (a *NetHTTPUpdateProductAdapter) Handle(w http.ResponseWriter, r *http.Requ
 		Price:       *req.Price,
 	}
 
+	// Execute the use case
 	product, err := a.useCase.Execute(input)
 	if err != nil {
-		http.Error(w, err.Error(), infrahttp.HttpError[err])
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, `{"error": "`+err.Error()+`"}`, infrahttp.HttpError[err])
 		return
 	}
 
