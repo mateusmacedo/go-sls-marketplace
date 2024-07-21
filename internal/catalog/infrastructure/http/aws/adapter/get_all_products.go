@@ -12,7 +12,6 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 )
 
 type GetAllProductsResponse struct {
@@ -45,7 +44,7 @@ func (a *LambdaGetAllProductsAdapter) Handle(ctx context.Context, request events
 	if request.HTTPMethod != http.MethodGet {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusMethodNotAllowed,
-			Body:       pkghttp.ErrHttpMethodNotAllowed.Error(),
+			Body:       `{"error": "method not allowed"}`,
 		}, nil
 	}
 
@@ -53,7 +52,7 @@ func (a *LambdaGetAllProductsAdapter) Handle(ctx context.Context, request events
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: infrahttp.HttpError[err],
-			Body:       err.Error(),
+			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}
 
@@ -73,7 +72,7 @@ func (a *LambdaGetAllProductsAdapter) Handle(ctx context.Context, request events
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body:       err.Error(),
+			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}
 

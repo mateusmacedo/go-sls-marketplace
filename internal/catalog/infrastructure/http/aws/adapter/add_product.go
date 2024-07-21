@@ -12,7 +12,6 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 )
 
 type AddProductRequest struct {
@@ -52,7 +51,7 @@ func (a *LambdaAddProductAdapter) Handle(ctx context.Context, request events.API
 	if request.HTTPMethod != http.MethodPost {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusMethodNotAllowed,
-			Body:       pkghttp.ErrHttpMethodNotAllowed.Error(),
+			Body:       `{"error": "method not allowed"}`,
 		}, nil
 	}
 
@@ -60,7 +59,7 @@ func (a *LambdaAddProductAdapter) Handle(ctx context.Context, request events.API
 	if err := json.Unmarshal([]byte(request.Body), &req); err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusBadRequest,
-			Body:       err.Error(),
+			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}
 
@@ -73,7 +72,7 @@ func (a *LambdaAddProductAdapter) Handle(ctx context.Context, request events.API
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: infrahttp.HttpError[err],
-			Body:       err.Error(),
+			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}
 
@@ -90,7 +89,7 @@ func (a *LambdaAddProductAdapter) Handle(ctx context.Context, request events.API
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body:       err.Error(),
+			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}
 

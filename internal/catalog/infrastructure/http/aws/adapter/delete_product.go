@@ -9,9 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
-	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
-	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
+	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 )
 
 type LambdaDeleteProductAdapter struct {
@@ -35,7 +34,7 @@ func (a *LambdaDeleteProductAdapter) Handle(ctx context.Context, request events.
 	if request.HTTPMethod != http.MethodDelete {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusMethodNotAllowed,
-			Body:       pkghttp.ErrHttpMethodNotAllowed.Error(),
+			Body:       `{"error": "method not allowed"}`,
 		}, nil
 	}
 
@@ -45,9 +44,13 @@ func (a *LambdaDeleteProductAdapter) Handle(ctx context.Context, request events.
 	})
 
 	if err != nil {
+		statusCode, ok := infrahttp.HttpError[err]
+		if !ok {
+			statusCode = http.StatusInternalServerError
+		}
 		return events.APIGatewayProxyResponse{
-			StatusCode: infrahttp.HttpError[err],
-			Body:       err.Error(),
+			StatusCode: statusCode,
+			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}
 
