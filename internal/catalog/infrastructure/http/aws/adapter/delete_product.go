@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
-	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
+	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
 )
 
 type LambdaDeleteProductAdapter struct {

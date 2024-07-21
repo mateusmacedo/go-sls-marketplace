@@ -3,6 +3,7 @@ package adapter
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"testing"
 
@@ -44,6 +45,14 @@ func TestLambdaDeleteProductAdapter_Handle(t *testing.T) {
 			mockServiceError:   domain.ErrRepositoryProduct,
 			expectedStatusCode: http.StatusInternalServerError,
 			expectedResponse:   `{"error": "error in repository"}`,
+		},
+		{
+			name:               "Service unknown error",
+			httpMethod:         http.MethodDelete,
+			pathParameters:     map[string]string{"id": "1"},
+			mockServiceError:   errors.New("some service error"),
+			expectedStatusCode: http.StatusInternalServerError,
+			expectedResponse:   `{"error": "some service error"}`,
 		},
 		{
 			name:               "Success",
