@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
+	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
 	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 )
@@ -51,16 +52,22 @@ func (a *LambdaUpdateProductUseCaseAdapter) Handle(ctx context.Context, request 
 	if request.HTTPMethod != http.MethodPut && request.HTTPMethod != http.MethodPatch {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusMethodNotAllowed,
-			Body:       pkghttp.ErrHttpMethodNotAllowed.Error(),
+			Body:       `{"error": "` + pkghttp.ErrHttpMethodNotAllowed.Error() + `"}`,
 		}, nil
 	}
 
 	id := request.PathParameters["id"]
+	if id == "" {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusBadRequest,
+			Body:       `{"error": "` + domain.ErrInvalidProductID.Error() + `"}`,
+		}, nil
+	}
 	var req UpdateProductUseCaseRequest
 	if err := json.Unmarshal([]byte(request.Body), &req); err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusBadRequest,
-			Body:       err.Error(),
+			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}
 
@@ -71,9 +78,13 @@ func (a *LambdaUpdateProductUseCaseAdapter) Handle(ctx context.Context, request 
 		Price:       req.Price,
 	})
 	if err != nil {
+		statusCode, ok := infrahttp.HttpError[err]
+		if !ok {
+			statusCode = http.StatusInternalServerError
+		}
 		return events.APIGatewayProxyResponse{
-			StatusCode: infrahttp.HttpError[err],
-			Body:       err.Error(),
+			StatusCode: statusCode,
+			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}
 
