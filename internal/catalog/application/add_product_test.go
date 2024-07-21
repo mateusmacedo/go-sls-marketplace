@@ -5,110 +5,83 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	"github.com/mateusmacedo/go-sls-marketplace/test/domain/mocks"
 )
 
-// MockProductAdder é um mock para domain.ProductService
-type MockProductAdder struct {
-	mock.Mock
-}
+func TestAddProductUseCase_Execute(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
-func (m *MockProductAdder) AddProduct(id domain.ProductID, name, description string, price float64) (*domain.Product, error) {
-	args := m.Called(id, name, description, price)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.Product), args.Error(1)
-}
+	mockProductAdder := mocks.NewMockProductAdder(mockCtrl)
 
-func TestProductAddUseCase_Execute(t *testing.T) {
-	mockService := new(MockProductAdder)
-	useCase := NewAddProductUseCase(mockService)
-
-	testCases := []struct {
+	tests := []struct {
 		name           string
 		input          AddProductInput
-		mockBehavior   func()
-		expectedError  error
+		mockOutput     *domain.Product
+		mockError      error
 		expectedOutput *AddProductOutput
+		expectedError  error
 	}{
 		{
-			name: "Successful product addition",
+			name: "Success",
 			input: AddProductInput{
-				ID:          "123",
-				Name:        "Test Product",
-				Description: "A test product",
-				Price:       9.99,
+				ID:          "1",
+				Name:        "Product",
+				Description: "Description",
+				Price:       10.0,
 			},
-			mockBehavior: func() {
-				createdAt := time.Now()
-				updatedAt := createdAt
-				mockService.On("AddProduct", domain.ProductID("123"), "Test Product", "A test product", 9.99).
-					Return(&domain.Product{
-						ID:          domain.ProductID("123"),
-						Name:        "Test Product",
-						Description: "A test product",
-						Price:       9.99,
-						CreatedAt:   createdAt,
-						UpdatedAt:   updatedAt,
-					}, nil)
+			mockOutput: &domain.Product{
+				ID:          domain.ProductID("1"),
+				Name:        "Product",
+				Description: "Description",
+				Price:       10.0,
+				CreatedAt:   time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+				UpdatedAt:   time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
 			},
-			expectedError: nil,
 			expectedOutput: &AddProductOutput{
-				ID:          "123",
-				Name:        "Test Product",
-				Description: "A test product",
-				Price:       9.99,
-				CreatedAt:   time.Now().Format(time.RFC3339),
-				UpdatedAt:   time.Now().Format(time.RFC3339),
+				ID:          "1",
+				Name:        "Product",
+				Description: "Description",
+				Price:       10.0,
+				CreatedAt:   "2021-01-01T00:00:00Z",
+				UpdatedAt:   "2021-01-02T00:00:00Z",
 			},
 		},
 		{
-			name: "Error adding product",
+			name: "Service Error",
 			input: AddProductInput{
-				ID:          "456",
-				Name:        "Failed Product",
-				Description: "This product will fail",
-				Price:       19.99,
+				ID:          "1",
+				Name:        "Product",
+				Description: "Description",
+				Price:       10.0,
 			},
-			mockBehavior: func() {
-				mockService.On("AddProduct", domain.ProductID("456"), "Failed Product", "This product will fail", 19.99).
-					Return(nil, errors.New("failed to add product"))
-			},
-			expectedError:  errors.New("failed to add product"),
-			expectedOutput: nil,
+			mockError:     errors.New("some service error"),
+			expectedError: errors.New("some service error"),
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.mockBehavior()
-
-			output, err := useCase.Execute(tc.input)
-
-			if tc.expectedError != nil {
-				assert.Error(t, err)
-				assert.Equal(t, tc.expectedError.Error(), err.Error())
-				assert.Nil(t, output)
-			} else {
-				assert.NoError(t, err)
-				assert.NotNil(t, output)
-				assert.Equal(t, tc.expectedOutput.ID, output.ID)
-				assert.Equal(t, tc.expectedOutput.Name, output.Name)
-				assert.Equal(t, tc.expectedOutput.Description, output.Description)
-				assert.Equal(t, tc.expectedOutput.Price, output.Price)
-
-				// Verificar se as datas estão no formato correto
-				_, err := time.Parse(time.RFC3339, output.CreatedAt)
-				assert.NoError(t, err)
-				_, err = time.Parse(time.RFC3339, output.UpdatedAt)
-				assert.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.mockOutput != nil || tt.mockError != nil {
+				mockProductAdder.EXPECT().
+					AddProduct(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(tt.mockOutput, tt.mockError)
 			}
 
-			mockService.AssertExpectations(t)
+			useCase := NewAddProductUseCase(mockProductAdder)
+			output, err := useCase.Execute(tt.input)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedOutput, output)
+			}
 		})
 	}
 }

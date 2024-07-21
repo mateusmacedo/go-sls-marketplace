@@ -4,34 +4,31 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	"github.com/mateusmacedo/go-sls-marketplace/test/domain/mocks"
 )
 
-type MockAllProductFinder struct {
-	mock.Mock
-}
-
-func (m *MockAllProductFinder) GetAllProducts() ([]*domain.Product, error) {
-	args := m.Called()
-	return args.Get(0).([]*domain.Product), args.Error(1)
-}
-
 func TestGetAllProductsUseCase_Execute(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	mockFinder := mocks.NewMockAllProductFinder(mockCtrl)
+	useCase := NewGetAllProductsUseCase(mockFinder)
+
 	testCases := []struct {
 		name             string
-		mockBehavior     func(*MockAllProductFinder)
+		mockBehavior     func(*mocks.MockAllProductFinder)
 		expectedProducts []*GetAllProductsOutput
 		expectedError    error
 	}{
 		{
 			name: "Successful retrieval of products",
-			mockBehavior: func(m *MockAllProductFinder) {
+			mockBehavior: func(m *mocks.MockAllProductFinder) {
 				createdAt := time.Date(2023, 5, 1, 10, 0, 0, 0, time.UTC)
 				updatedAt := time.Date(2023, 5, 2, 11, 0, 0, 0, time.UTC)
-				m.On("GetAllProducts").Return([]*domain.Product{
+				m.EXPECT().GetAllProducts().Return([]*domain.Product{
 					{
 						ID:          domain.ProductID("1"),
 						Name:        "Product 1",
@@ -41,7 +38,7 @@ func TestGetAllProductsUseCase_Execute(t *testing.T) {
 						UpdatedAt:   updatedAt,
 					},
 					{
-						ID:          "2",
+						ID:          domain.ProductID("2"),
 						Name:        "Product 2",
 						Description: "Description 2",
 						Price:       20.0,
@@ -56,24 +53,24 @@ func TestGetAllProductsUseCase_Execute(t *testing.T) {
 					Name:        "Product 1",
 					Description: "Description 1",
 					Price:       10.0,
-					CreatedAt:   "2023-05-01 10:00:00",
-					UpdatedAt:   "2023-05-02 11:00:00",
+					CreatedAt:   "2023-05-01T10:00:00Z",
+					UpdatedAt:   "2023-05-02T11:00:00Z",
 				},
 				{
 					ID:          "2",
 					Name:        "Product 2",
 					Description: "Description 2",
 					Price:       20.0,
-					CreatedAt:   "2023-05-01 10:00:00",
-					UpdatedAt:   "2023-05-02 11:00:00",
+					CreatedAt:   "2023-05-01T10:00:00Z",
+					UpdatedAt:   "2023-05-02T11:00:00Z",
 				},
 			},
 			expectedError: nil,
 		},
 		{
 			name: "Error retrieving products",
-			mockBehavior: func(m *MockAllProductFinder) {
-				m.On("GetAllProducts").Return([]*domain.Product{}, domain.ErrRepositoryProduct)
+			mockBehavior: func(m *mocks.MockAllProductFinder) {
+				m.EXPECT().GetAllProducts().Return(nil, domain.ErrRepositoryProduct)
 			},
 			expectedProducts: []*GetAllProductsOutput{},
 			expectedError:    domain.ErrRepositoryProduct,
@@ -83,9 +80,6 @@ func TestGetAllProductsUseCase_Execute(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			mockFinder := new(MockAllProductFinder)
-			useCase := NewGetAllProductsUseCase(mockFinder)
-
 			tc.mockBehavior(mockFinder)
 
 			products, err := useCase.Execute()
@@ -93,7 +87,7 @@ func TestGetAllProductsUseCase_Execute(t *testing.T) {
 			if tc.expectedError != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
-				assert.Equal(t, len(tc.expectedProducts), len(products))
+				assert.Equal(t, tc.expectedProducts, products)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, len(tc.expectedProducts), len(products))
@@ -103,12 +97,10 @@ func TestGetAllProductsUseCase_Execute(t *testing.T) {
 					assert.Equal(t, expectedProduct.Name, products[i].Name)
 					assert.Equal(t, expectedProduct.Description, products[i].Description)
 					assert.Equal(t, expectedProduct.Price, products[i].Price)
-					assert.NotZero(t, products[i].CreatedAt)
-					assert.NotZero(t, products[i].UpdatedAt)
+					assert.Equal(t, expectedProduct.CreatedAt, products[i].CreatedAt)
+					assert.Equal(t, expectedProduct.UpdatedAt, products[i].UpdatedAt)
 				}
 			}
-
-			mockFinder.AssertExpectations(t)
 		})
 	}
 }

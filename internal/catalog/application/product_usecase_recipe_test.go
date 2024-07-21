@@ -3,11 +3,16 @@ package application
 import (
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mateusmacedo/go-sls-marketplace/test/domain/mocks"
 )
 
 func TestCreateAddProductUseCase(t *testing.T) {
-	mockProductAdder := new(MockProductAdder)
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	mockProductAdder := mocks.NewMockProductAdder(mockCtrl)
 
 	tests := []struct {
 		name         string
@@ -51,7 +56,9 @@ func TestCreateAddProductUseCase(t *testing.T) {
 
 // Similar tests for other creation functions
 func TestCreateDeleteProductUseCase(t *testing.T) {
-	mockProductDeleter := new(MockProductDeleter)
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	mockProductDeleter := mocks.NewMockProductDeleter(mockCtrl)
 
 	tests := []struct {
 		name         string
@@ -94,7 +101,9 @@ func TestCreateDeleteProductUseCase(t *testing.T) {
 }
 
 func TestCreateGetAllProductsUseCase(t *testing.T) {
-	mockAllProductFinder := new(MockAllProductFinder)
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	mockAllProductFinder := mocks.NewMockAllProductFinder(mockCtrl)
 
 	tests := []struct {
 		name         string
@@ -137,7 +146,9 @@ func TestCreateGetAllProductsUseCase(t *testing.T) {
 }
 
 func TestCreateGetProductUseCase(t *testing.T) {
-	mockProductFinder := new(MockProductFinder)
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	mockProductFinder := mocks.NewMockProductFinder(mockCtrl)
 
 	tests := []struct {
 		name         string
@@ -180,7 +191,9 @@ func TestCreateGetProductUseCase(t *testing.T) {
 }
 
 func TestCreateUpdateProductUseCase(t *testing.T) {
-	mockProductUpdater := new(MockProductUpdater)
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	mockProductUpdater := mocks.NewMockProductUpdater(mockCtrl)
 
 	tests := []struct {
 		name         string
