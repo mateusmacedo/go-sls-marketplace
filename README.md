@@ -31,7 +31,15 @@ To test the system, you can use the following commands:
 
 ```bash
 # Run the tests
-go test ./... -timeout 10s -tags wireinject --cover --race
+go test ./internal/catalog/application -timeout 30s -tags wireinject --cover --race -count=1
+go test ./internal/catalog/domain -timeout 30s -tags wireinject --cover --race -count=1
+go test ./internal/catalog/infrastructure/db/dynamodb/adapter -timeout 30s -tags wireinject --cover --race -count=1
+go test ./internal/catalog/infrastructure/db/gorm/adapter -timeout 30s -tags wireinject --cover --race -count=1
+go test ./internal/catalog/infrastructure/http/aws/adapter -timeout 30s -tags wireinject --cover --race -count=1
+go test ./internal/catalog/infrastructure/http/net/adapter -timeout 30s -tags wireinject --cover --race -count=1
+go test ./pkg/application -timeout 30s -tags wireinject --cover --race -count=1
+go test ./pkg/infrastructure/http -timeout 30s -tags wireinject --cover --race -count=1
+go test ./pkg/infrastructure/log -timeout 30s -tags wireinject --cover --race -count=1
 ```
 
 To generate mocks for the interfaces, you can use the following commands:
@@ -54,5 +62,4 @@ mockgen -destination=test/application/mocks/get_product_use_case.go -package=moc
 mockgen -destination=test/application/mocks/update_product_use_case.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application UpdateProductUseCase
 
 mockgen -destination=test/infrastructure/mocks/dynamo_dbapi.go -package=mocks github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/db/dynamodb/adapter DynamoDBAPI
-
 ```
