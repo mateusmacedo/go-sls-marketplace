@@ -6,6 +6,7 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 )
 
 type GetAllProductsResponse struct {
@@ -29,13 +30,17 @@ func NewNetHTTPGetAllProductsAdapter(useCase application.GetAllProductsUseCase) 
 
 func (a *NetHTTPGetAllProductsAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, `{"error": "method not allowed"}`, http.StatusMethodNotAllowed)
+		http.Error(w, `{"error": "`+pkghttp.ErrHttpMethodNotAllowed.Error()+`"}`, http.StatusMethodNotAllowed)
 		return
 	}
 
 	products, err := a.useCase.Execute()
 	if err != nil {
-		http.Error(w, `{"error": "`+err.Error()+`"}`, infrahttp.HttpError[err])
+		code, ok := infrahttp.HttpError[err]
+		if !ok {
+			code = http.StatusInternalServerError
+		}
+		http.Error(w, `{"error": "`+err.Error()+`"}`, code)
 		return
 	}
 
