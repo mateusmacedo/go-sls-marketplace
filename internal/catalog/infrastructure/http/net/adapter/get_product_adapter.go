@@ -34,7 +34,8 @@ func NewNetHTTPGetProductAdapter(useCase application.GetProductUseCase) *NetHTTP
 
 func (a *NetHTTPGetProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, pkghttp.ErrHttpMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, `{"error": "`+pkghttp.ErrHttpMethodNotAllowed.Error()+`"}`, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -45,7 +46,8 @@ func (a *NetHTTPGetProductAdapter) Handle(w http.ResponseWriter, r *http.Request
 
 	product, err := a.useCase.Execute(input)
 	if err != nil {
-		http.Error(w, err.Error(), infrahttp.HttpError[err])
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, `{"error": "`+err.Error()+`"}`, infrahttp.HttpError[err])
 		return
 	}
 

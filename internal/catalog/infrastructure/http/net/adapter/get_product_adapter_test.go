@@ -7,22 +7,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
+	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
-
-type MockGetProductUseCase struct {
-	mock.Mock
-}
-
-func (m *MockGetProductUseCase) Execute(input application.GetProductInput) (*application.GetProductOutput, error) {
-	args := m.Called(input)
-	return args.Get(0).(*application.GetProductOutput), args.Error(1)
-}
 
 func TestNetHTTPGetProductAdapter_Handle(t *testing.T) {
 	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC).Format(time.RFC3339)
@@ -66,7 +58,7 @@ func TestNetHTTPGetProductAdapter_Handle(t *testing.T) {
 			mockProduct:    nil,
 			mockError:      domain.ErrNotFoundProduct,
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   domain.ErrNotFoundProduct.Error() + "\n",
+			expectedBody:   map[string]interface{}{"error": domain.ErrNotFoundProduct.Error()},
 		},
 		{
 			name:           "Method not allowed",
@@ -75,15 +67,18 @@ func TestNetHTTPGetProductAdapter_Handle(t *testing.T) {
 			mockProduct:    nil,
 			mockError:      nil,
 			expectedStatus: http.StatusMethodNotAllowed,
-			expectedBody:   pkghttp.ErrHttpMethodNotAllowed.Error() + "\n",
+			expectedBody:   map[string]interface{}{"error": pkghttp.ErrHttpMethodNotAllowed.Error()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUseCase := new(MockGetProductUseCase)
+			mockCtrl := gomock.NewController(t)
+			defer mockCtrl.Finish()
+
+			mockUseCase := mocks.NewMockGetProductUseCase(mockCtrl)
 			if tt.method == http.MethodGet {
-				mockUseCase.On("Execute", application.GetProductInput{ID: tt.productID}).Return(tt.mockProduct, tt.mockError)
+				mockUseCase.EXPECT().Execute(application.GetProductInput{ID: tt.productID}).Return(tt.mockProduct, tt.mockError)
 			}
 
 			adapter := NewNetHTTPGetProductAdapter(mockUseCase)
@@ -101,13 +96,10 @@ func TestNetHTTPGetProductAdapter_Handle(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expectedBody, &response)
 			} else {
-				assert.Equal(t, tt.expectedBody, rr.Body.String())
-			}
-
-			if tt.method == http.MethodGet {
-				mockUseCase.AssertCalled(t, "Execute", application.GetProductInput{ID: tt.productID})
-			} else {
-				mockUseCase.AssertNotCalled(t, "Execute")
+				var actualBody map[string]interface{}
+				err := json.Unmarshal(rr.Body.Bytes(), &actualBody)
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedBody, actualBody)
 			}
 		})
 	}
