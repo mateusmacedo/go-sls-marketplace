@@ -9,17 +9,17 @@ import (
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
 
-type gormProductRepository struct {
+type gormProductSaveRepository struct {
 	db *gorm.DB
 }
 
-func NewGormProductRepository(db *gorm.DB) domain.ProductRepository {
-	return &gormProductRepository{
+func NewGormProductSaveRepository(db *gorm.DB) domain.ProductSaveRepository {
+	return &gormProductSaveRepository{
 		db: db,
 	}
 }
 
-func (repo *gormProductRepository) Save(product *domain.Product) error {
+func (repo *gormProductSaveRepository) Save(product *domain.Product) error {
 	entity, err := NewProductEntityFromDomain(product)
 	if err != nil {
 		return err
@@ -32,7 +32,17 @@ func (repo *gormProductRepository) Save(product *domain.Product) error {
 	return result.Error
 }
 
-func (repo *gormProductRepository) Find(id domain.ProductID) (*domain.Product, error) {
+type gormProductFindRepository struct {
+	db *gorm.DB
+}
+
+func NewGormProductFindRepository(db *gorm.DB) domain.ProductFindRepository {
+	return &gormProductFindRepository{
+		db: db,
+	}
+}
+
+func (repo *gormProductFindRepository) Find(id domain.ProductID) (*domain.Product, error) {
 	var entity GormProductEntity
 	err := repo.db.First(&entity, "id = ?", id).Error
 	if err != nil {
@@ -44,7 +54,17 @@ func (repo *gormProductRepository) Find(id domain.ProductID) (*domain.Product, e
 	return entity.ToDomain()
 }
 
-func (repo *gormProductRepository) FindAll() ([]*domain.Product, error) {
+type gormProductFindAllRepository struct {
+	db *gorm.DB
+}
+
+func NewGormProductFindAllRepository(db *gorm.DB) domain.ProductFindAllRepository {
+	return &gormProductFindAllRepository{
+		db: db,
+	}
+}
+
+func (repo *gormProductFindAllRepository) FindAll() ([]*domain.Product, error) {
 	var entities []GormProductEntity
 	err := repo.db.Find(&entities).Error
 	if err != nil {
@@ -58,6 +78,16 @@ func (repo *gormProductRepository) FindAll() ([]*domain.Product, error) {
 	return products, nil
 }
 
-func (repo *gormProductRepository) Delete(id domain.ProductID) error {
+type gormProductDeleteRepository struct {
+	db *gorm.DB
+}
+
+func NewGormProductDeleteRepository(db *gorm.DB) domain.ProductDeleteRepository {
+	return &gormProductDeleteRepository{
+		db: db,
+	}
+}
+
+func (repo *gormProductDeleteRepository) Delete(id domain.ProductID) error {
 	return repo.db.Delete(&GormProductEntity{}, "id = ?", id).Error
 }

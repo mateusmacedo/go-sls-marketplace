@@ -36,7 +36,7 @@ func setupTestDB(t *testing.T) (*gorm.DB, sqlmock.Sqlmock) {
 
 func TestGormProductRepository_Save(t *testing.T) {
 	gormDB, mock := setupTestDB(t)
-	repo := NewGormProductRepository(gormDB)
+	repo := NewGormProductSaveRepository(gormDB)
 
 	product := &domain.Product{
 		ID:          "test-id",
@@ -61,7 +61,7 @@ func TestGormProductRepository_Save(t *testing.T) {
 
 func TestGormProductRepository_Save_Error_WhenProductIsNil(t *testing.T) {
 	gormDB, _ := setupTestDB(t)
-	repo := NewGormProductRepository(gormDB)
+	repo := NewGormProductSaveRepository(gormDB)
 
 	err := repo.Save(nil)
 	assert.ErrorIs(t, err, domain.ErrInvalidProductID)
@@ -69,7 +69,7 @@ func TestGormProductRepository_Save_Error_WhenProductIsNil(t *testing.T) {
 
 func TestGormProductRepository_Find(t *testing.T) {
 	gormDB, mock := setupTestDB(t)
-	repo := NewGormProductRepository(gormDB)
+	repo := NewGormProductFindRepository(gormDB)
 
 	productID := domain.ProductID("test-id")
 
@@ -97,9 +97,26 @@ func TestGormProductRepository_Find(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
+func TestGormProductRepository_Find_NotFound(t *testing.T) {
+	gormDB, mock := setupTestDB(t)
+	repo := NewGormProductFindRepository(gormDB)
+
+	productID := domain.ProductID("non-existent-id")
+
+	mock.ExpectQuery(`SELECT \* FROM "product_entities" WHERE id = \$1 ORDER BY "product_entities"."id" LIMIT \$2`).
+		WithArgs(string(productID), 1).
+		WillReturnError(gorm.ErrRecordNotFound)
+
+	product, err := repo.Find(productID)
+	assert.Nil(t, product)
+	assert.ErrorIs(t, err, domain.ErrNotFoundProduct)
+
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
 func TestGormProductRepository_Find_Error_WhenGormError(t *testing.T) {
 	gormDB, mock := setupTestDB(t)
-	repo := NewGormProductRepository(gormDB)
+	repo := NewGormProductFindRepository(gormDB)
 
 	productID := domain.ProductID("test-id")
 
@@ -116,7 +133,7 @@ func TestGormProductRepository_Find_Error_WhenGormError(t *testing.T) {
 
 func TestGormProductRepository_FindAll(t *testing.T) {
 	gormDB, mock := setupTestDB(t)
-	repo := NewGormProductRepository(gormDB)
+	repo := NewGormProductFindAllRepository(gormDB)
 
 	rows := sqlmock.NewRows([]string{"id", "name", "description", "price", "created_at", "updated_at"}).
 		AddRow("test-id-1", "Test Product 1", "Test Description 1", 9.99, time.Now(), time.Now()).
@@ -134,7 +151,7 @@ func TestGormProductRepository_FindAll(t *testing.T) {
 
 func TestGormProductRepository_FindAll_Error_WhenGormError(t *testing.T) {
 	gormDB, mock := setupTestDB(t)
-	repo := NewGormProductRepository(gormDB)
+	repo := NewGormProductFindAllRepository(gormDB)
 
 	mock.ExpectQuery("SELECT \\* FROM \"product_entities\"").
 		WillReturnError(errors.New("unexpected error"))
@@ -148,7 +165,7 @@ func TestGormProductRepository_FindAll_Error_WhenGormError(t *testing.T) {
 
 func TestGormProductRepository_Delete(t *testing.T) {
 	gormDB, mock := setupTestDB(t)
-	repo := NewGormProductRepository(gormDB)
+	repo := NewGormProductDeleteRepository(gormDB)
 
 	productID := domain.ProductID("test-id")
 
@@ -160,23 +177,6 @@ func TestGormProductRepository_Delete(t *testing.T) {
 
 	err := repo.Delete(productID)
 	assert.NoError(t, err)
-
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestGormProductRepository_Find_NotFound(t *testing.T) {
-	gormDB, mock := setupTestDB(t)
-	repo := NewGormProductRepository(gormDB)
-
-	productID := domain.ProductID("non-existent-id")
-
-	mock.ExpectQuery(`SELECT \* FROM "product_entities" WHERE id = \$1 ORDER BY "product_entities"."id" LIMIT \$2`).
-		WithArgs(string(productID), 1).
-		WillReturnError(gorm.ErrRecordNotFound)
-
-	product, err := repo.Find(productID)
-	assert.Nil(t, product)
-	assert.ErrorIs(t, err, domain.ErrNotFoundProduct)
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
