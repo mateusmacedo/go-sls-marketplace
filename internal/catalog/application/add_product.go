@@ -30,7 +30,7 @@ type addProductUseCase struct {
 	productAdder domain.ProductAdder
 }
 
-func NewProductAddUseCase(ProductAdder domain.ProductAdder) AddProductUseCase {
+func NewAddProductUseCase(ProductAdder domain.ProductAdder) AddProductUseCase {
 	return &addProductUseCase{
 		productAdder: ProductAdder,
 	}

@@ -26,7 +26,7 @@ func (m *MockProductService) AddProduct(id domain.ProductID, name, description s
 
 func TestProductAddUseCase_Execute(t *testing.T) {
 	mockService := new(MockProductService)
-	useCase := NewProductAddUseCase(mockService)
+	useCase := NewAddProductUseCase(mockService)
 
 	testCases := []struct {
 		name           string
