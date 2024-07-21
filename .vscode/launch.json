@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Server",
+            "name": "Catalog API",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "cmd/catalog/main.go",
+            "program": "cmd/catalog/gorilla/mux/main.go",
         }
     ]
 }
