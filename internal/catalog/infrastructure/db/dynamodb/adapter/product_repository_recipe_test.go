@@ -6,70 +6,262 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 	"github.com/mateusmacedo/go-sls-marketplace/test/mocks"
 )
 
-type testCase struct {
-	name         string
-	createRepoFn func(map[string]interface{}) (interface{}, error)
-	expectedType interface{}
-}
-
-func TestCreateProductRepositories(t *testing.T) {
+func TestCreateProductSaveRepository(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	db := mocks.NewMockDynamoDBAPI(ctrl)
-	dependencies := map[string]interface{}{
-		"dynamoDBAPI":     db,
-		"dynamoTableName": "testTable",
-	}
+	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
 
-	createProductSaveRepositoryWrapper := func(dependencies map[string]interface{}) (interface{}, error) {
-		return CreateProductSaveRepository(dependencies)
-	}
-
-	createProductFindRepositoryWrapper := func(dependencies map[string]interface{}) (interface{}, error) {
-		return CreateProductFindRepository(dependencies)
-	}
-
-	createProductFindAllRepositoryWrapper := func(dependencies map[string]interface{}) (interface{}, error) {
-		return CreateProductFindAllRepository(dependencies)
-	}
-
-	createProductDeleteRepositoryWrapper := func(dependencies map[string]interface{}) (interface{}, error) {
-		return CreateProductDeleteRepository(dependencies)
-	}
-
-	testCases := []testCase{
+	tests := []struct {
+		name         string
+		dependencies map[string]interface{}
+		expectedErr  error
+	}{
 		{
-			name:         "CreateProductSaveRepository",
-			createRepoFn: createProductSaveRepositoryWrapper,
-			expectedType: (*domain.ProductSaveRepository)(nil),
+			name: "Successful creation",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     mockDB,
+				"dynamoTableName": "Products",
+			},
+			expectedErr: nil,
 		},
 		{
-			name:         "CreateProductFindRepository",
-			createRepoFn: createProductFindRepositoryWrapper,
-			expectedType: (*domain.ProductFindRepository)(nil),
+			name: "Missing dynamoDBAPI",
+			dependencies: map[string]interface{}{
+				"dynamoTableName": "Products",
+			},
+			expectedErr: assert.AnError,
 		},
 		{
-			name:         "CreateProductFindAllRepository",
-			createRepoFn: createProductFindAllRepositoryWrapper,
-			expectedType: (*domain.ProductFindAllRepository)(nil),
+			name: "Nil dynamoDBAPI",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     nil,
+				"dynamoTableName": "Products",
+			},
+			expectedErr: assert.AnError,
 		},
 		{
-			name:         "CreateProductDeleteRepository",
-			createRepoFn: createProductDeleteRepositoryWrapper,
-			expectedType: (*domain.ProductDeleteRepository)(nil),
+			name: "Missing dynamoTableName",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI": mockDB,
+			},
+			expectedErr: assert.AnError,
+		},
+		{
+			name: "Empty dynamoTableName",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     mockDB,
+				"dynamoTableName": "",
+			},
+			expectedErr: assert.AnError,
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			repo, err := tc.createRepoFn(dependencies)
-			assert.NoError(t, err)
-			assert.NotNil(t, repo)
-			assert.Implements(t, tc.expectedType, repo)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, err := CreateProductSaveRepository(tt.dependencies)
+
+			if tt.expectedErr != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, repo)
+			}
+		})
+	}
+}
+
+// Similar tests for other creation functions
+func TestCreateProductFindRepository(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
+
+	tests := []struct {
+		name         string
+		dependencies map[string]interface{}
+		expectedErr  error
+	}{
+		{
+			name: "Successful creation",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     mockDB,
+				"dynamoTableName": "Products",
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "Missing dynamoDBAPI",
+			dependencies: map[string]interface{}{
+				"dynamoTableName": "Products",
+			},
+			expectedErr: assert.AnError,
+		},
+		{
+			name: "Nil dynamoDBAPI",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     nil,
+				"dynamoTableName": "Products",
+			},
+			expectedErr: assert.AnError,
+		},
+		{
+			name: "Missing dynamoTableName",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI": mockDB,
+			},
+			expectedErr: assert.AnError,
+		},
+		{
+			name: "Empty dynamoTableName",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     mockDB,
+				"dynamoTableName": "",
+			},
+			expectedErr: assert.AnError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, err := CreateProductFindRepository(tt.dependencies)
+
+			if tt.expectedErr != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, repo)
+			}
+		})
+	}
+}
+
+func TestCreateProductFindAllRepository(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
+
+	tests := []struct {
+		name         string
+		dependencies map[string]interface{}
+		expectedErr  error
+	}{
+		{
+			name: "Successful creation",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     mockDB,
+				"dynamoTableName": "Products",
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "Missing dynamoDBAPI",
+			dependencies: map[string]interface{}{
+				"dynamoTableName": "Products",
+			},
+			expectedErr: assert.AnError,
+		},
+		{
+			name: "Nil dynamoDBAPI",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     nil,
+				"dynamoTableName": "Products",
+			},
+			expectedErr: assert.AnError,
+		},
+		{
+			name: "Missing dynamoTableName",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI": mockDB,
+			},
+			expectedErr: assert.AnError,
+		},
+		{
+			name: "Empty dynamoTableName",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     mockDB,
+				"dynamoTableName": "",
+			},
+			expectedErr: assert.AnError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, err := CreateProductFindAllRepository(tt.dependencies)
+
+			if tt.expectedErr != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, repo)
+			}
+		})
+	}
+}
+
+func TestCreateProductDeleteRepository(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockDB := mocks.NewMockDynamoDBAPI(ctrl)
+
+	tests := []struct {
+		name         string
+		dependencies map[string]interface{}
+		expectedErr  error
+	}{
+		{
+			name: "Successful creation",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     mockDB,
+				"dynamoTableName": "Products",
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "Missing dynamoDBAPI",
+			dependencies: map[string]interface{}{
+				"dynamoTableName": "Products",
+			},
+			expectedErr: assert.AnError,
+		},
+		{
+			name: "Nil dynamoDBAPI",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     nil,
+				"dynamoTableName": "Products",
+			},
+			expectedErr: assert.AnError,
+		},
+		{
+			name: "Missing dynamoTableName",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI": mockDB,
+			},
+			expectedErr: assert.AnError,
+		},
+		{
+			name: "Empty dynamoTableName",
+			dependencies: map[string]interface{}{
+				"dynamoDBAPI":     mockDB,
+				"dynamoTableName": "",
+			},
+			expectedErr: assert.AnError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, err := CreateProductDeleteRepository(tt.dependencies)
+
+			if tt.expectedErr != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, repo)
+			}
 		})
 	}
 }
