@@ -29,13 +29,13 @@ func NewNetHTTPGetAllProductsAdapter(useCase application.GetAllProductsUseCase) 
 
 func (a *NetHTTPGetAllProductsAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, `{"error": "method not allowed"}`, http.StatusMethodNotAllowed)
 		return
 	}
 
 	products, err := a.useCase.Execute()
 	if err != nil {
-		http.Error(w, err.Error(), infrahttp.HttpError[err])
+		http.Error(w, `{"error": "`+err.Error()+`"}`, infrahttp.HttpError[err])
 		return
 	}
 
