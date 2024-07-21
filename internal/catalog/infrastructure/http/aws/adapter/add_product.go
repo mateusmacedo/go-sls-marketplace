@@ -70,8 +70,12 @@ func (a *LambdaAddProductAdapter) Handle(ctx context.Context, request events.API
 		Price:       req.Price,
 	})
 	if err != nil {
+		statusCode, ok := infrahttp.HttpError[err]
+		if !ok {
+			statusCode = http.StatusInternalServerError
+		}
 		return events.APIGatewayProxyResponse{
-			StatusCode: infrahttp.HttpError[err],
+			StatusCode: statusCode,
 			Body:       `{"error": "` + err.Error() + `"}`,
 		}, nil
 	}
@@ -85,7 +89,7 @@ func (a *LambdaAddProductAdapter) Handle(ctx context.Context, request events.API
 		UpdatedAt:   product.UpdatedAt,
 	}
 
-	responseBody, err := json.Marshal(res)
+	responseBody, err := json.Marshal(res) // TODO: Test error
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,

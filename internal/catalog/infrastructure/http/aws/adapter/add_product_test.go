@@ -12,6 +12,7 @@ import (
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
 	infrahttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
+	pkginfrahttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
 	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
@@ -48,7 +49,7 @@ func TestLambdaAddProductAdapter_Handle(t *testing.T) {
 			httpMethod:         http.MethodPost,
 			requestBody:        `{"id":"1","name":"Product","description":"Description","price":10.0}`,
 			mockServiceError:   errors.New("some service error"),
-			expectedStatusCode: infrahttp.HttpError[errors.New("some service error")],
+			expectedStatusCode: infrahttp.HttpError[pkginfrahttp.ErrServiceError],
 			expectedResponse:   `{"error": "some service error"}`,
 		},
 		{
