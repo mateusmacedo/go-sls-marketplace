@@ -11,12 +11,12 @@ import (
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
 )
 
-// MockProductService é um mock para domain.ProductService
-type MockProductService struct {
+// MockProductAdder é um mock para domain.ProductService
+type MockProductAdder struct {
 	mock.Mock
 }
 
-func (m *MockProductService) AddProduct(id domain.ProductID, name, description string, price float64) (*domain.Product, error) {
+func (m *MockProductAdder) AddProduct(id domain.ProductID, name, description string, price float64) (*domain.Product, error) {
 	args := m.Called(id, name, description, price)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -25,7 +25,7 @@ func (m *MockProductService) AddProduct(id domain.ProductID, name, description s
 }
 
 func TestProductAddUseCase_Execute(t *testing.T) {
-	mockService := new(MockProductService)
+	mockService := new(MockProductAdder)
 	useCase := NewAddProductUseCase(mockService)
 
 	testCases := []struct {
