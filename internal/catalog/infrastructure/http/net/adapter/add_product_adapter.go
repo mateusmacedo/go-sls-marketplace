@@ -58,13 +58,19 @@ func NewNetHTTPAddProductAdapter(opts ...HTTPAddProductAdapterOption) *NetHTTPAd
 
 func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request) {
 	if !a.methodGuard.IsMethodAllowed(r.Method) {
-		http.Error(w, pkghttp.ErrHttpMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
+		response := map[string]string{"error": pkghttp.ErrHttpMethodNotAllowed.Error()}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	var req AddProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		response := map[string]string{"error": pkghttp.ErrHttpInvalidJSON.Error()}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(infrahttp.HttpError[pkghttp.ErrHttpInvalidJSON])
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -75,7 +81,15 @@ func (a *NetHTTPAddProductAdapter) Handle(w http.ResponseWriter, r *http.Request
 		Price:       req.Price,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), infrahttp.HttpError[err])
+		statusCode, ok := infrahttp.HttpError[err]
+		if !ok {
+			err = pkghttp.ErrServiceError
+			statusCode = infrahttp.HttpError[err]
+		}
+		response := map[string]string{"error": err.Error()}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(statusCode)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 

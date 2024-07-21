@@ -6,180 +6,103 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/application"
-	"github.com/mateusmacedo/go-sls-marketplace/internal/catalog/domain"
+	internalhttp "github.com/mateusmacedo/go-sls-marketplace/internal/catalog/infrastructure/http"
 	pkghttp "github.com/mateusmacedo/go-sls-marketplace/pkg/infrastructure/http"
+	"github.com/mateusmacedo/go-sls-marketplace/test/application/mocks"
 )
 
-type MockAddProductUseCase struct {
-	mock.Mock
-}
-
-func (m *MockAddProductUseCase) Execute(input application.AddProductInput) (*application.AddProductOutput, error) {
-	args := m.Called(input)
-	return args.Get(0).(*application.AddProductOutput), args.Error(1)
-}
-
-type MockMethodGuard struct {
-	mock.Mock
-}
-
-func (m *MockMethodGuard) IsMethodAllowed(method string) bool {
-	args := m.Called(method)
-	return args.Bool(0)
-}
-
 func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
-	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
-
 	tests := []struct {
-		name           string
-		input          interface{}
-		mockOutput     *application.AddProductOutput
-		mockError      error
-		expectedStatus int
-		expectedBody   interface{}
-		expectExecute  bool
-		method         string
+		name               string
+		httpMethod         string
+		requestBody        string
+		mockOutput         *application.AddProductOutput
+		mockError          error
+		expectedStatusCode int
+		expectedResponse   map[string]interface{}
 	}{
 		{
-			name: "Successful product addition",
-			input: AddProductRequest{
-				ID:          "1",
-				Name:        "Test Product",
-				Description: "A test product",
-				Price:       9.99,
-			},
-			mockOutput: &application.AddProductOutput{
-				ID:          "1",
-				Name:        "Test Product",
-				Description: "A test product",
-				Price:       9.99,
-				CreatedAt:   fixedTime.Format(time.RFC3339),
-				UpdatedAt:   fixedTime.Format(time.RFC3339),
-			},
-			mockError:      nil,
-			expectedStatus: http.StatusCreated,
-			expectedBody: AddProductResponse{
-				ID:          "1",
-				Name:        "Test Product",
-				Description: "A test product",
-				Price:       9.99,
-				CreatedAt:   fixedTime.Format(time.RFC3339),
-				UpdatedAt:   fixedTime.Format(time.RFC3339),
-			},
-			expectExecute: true,
-			method:        http.MethodPost,
+			name:               "Method Not Allowed",
+			httpMethod:         http.MethodGet,
+			expectedStatusCode: http.StatusMethodNotAllowed,
+			expectedResponse:   map[string]interface{}{"error": pkghttp.ErrHttpMethodNotAllowed.Error()},
 		},
 		{
-			name: "Failed product addition",
-			input: AddProductRequest{
-				ID:          "2",
-				Name:        "Failed Product",
-				Description: "A product that fails to be added",
-				Price:       19.99,
-			},
-			mockOutput:     nil,
-			mockError:      domain.ErrRepositoryProduct,
-			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   domain.ErrRepositoryProduct.Error() + "\n",
-			expectExecute:  true,
-			method:         http.MethodPost,
+			name:               "Invalid JSON",
+			httpMethod:         http.MethodPost,
+			requestBody:        "invalid json",
+			expectedStatusCode: http.StatusBadRequest,
+			expectedResponse:   map[string]interface{}{"error": "invalid JSON"},
 		},
 		{
-			name: "Invalid input - empty name",
-			input: AddProductRequest{
-				ID:          "3",
-				Name:        "",
-				Description: "Invalid product",
-				Price:       29.99,
-			},
-			mockOutput:     nil,
-			mockError:      domain.ErrInvalidProductName,
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   domain.ErrInvalidProductName.Error() + "\n",
-			expectExecute:  true,
-			method:         http.MethodPost,
+			name:               "Service Error",
+			httpMethod:         http.MethodPost,
+			requestBody:        `{"id":"1","name":"Product","description":"Description","price":10.0}`,
+			mockError:          pkghttp.ErrServiceError,
+			expectedStatusCode: internalhttp.HttpError[pkghttp.ErrServiceError],
+			expectedResponse:   map[string]interface{}{"error": pkghttp.ErrServiceError.Error()},
 		},
 		{
-			name:           "Invalid JSON input",
-			input:          "invalid json",
-			mockOutput:     nil,
-			mockError:      nil,
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "invalid character 'i' looking for beginning of value\n",
-			expectExecute:  false,
-			method:         http.MethodPost,
-		},
-		{
-			name:           "Method not allowed",
-			input:          AddProductRequest{},
-			mockOutput:     nil,
-			mockError:      nil,
-			expectedStatus: http.StatusMethodNotAllowed,
-			expectedBody:   pkghttp.ErrHttpMethodNotAllowed.Error() + "\n",
-			expectExecute:  false,
-			method:         http.MethodGet,
+			name:               "Success",
+			httpMethod:         http.MethodPost,
+			requestBody:        `{"id":"1","name":"Product","description":"Description","price":10.0}`,
+			mockOutput:         &application.AddProductOutput{ID: "1", Name: "Product", Description: "Description", Price: 10.0, CreatedAt: "2021-01-01T00:00:00Z", UpdatedAt: "2021-01-02T00:00:00Z"},
+			expectedStatusCode: http.StatusCreated,
+			expectedResponse:   map[string]interface{}{"id": "1", "name": "Product", "description": "Description", "price": 10.0, "created_at": "2021-01-01T00:00:00Z", "updated_at": "2021-01-02T00:00:00Z"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUseCase := new(MockAddProductUseCase)
-			mockMethodGuard := new(MockMethodGuard)
-			if tt.expectExecute {
-				mockUseCase.On("Execute", mock.Anything).Return(tt.mockOutput, tt.mockError)
+			mockCtrl := gomock.NewController(t)
+			defer mockCtrl.Finish()
+
+			mockService := mocks.NewMockAddProductUseCase(mockCtrl)
+			methodGuard := pkghttp.NewHttpMethodGuard([]string{http.MethodPost})
+
+			adapter := NewNetHTTPAddProductAdapter(
+				WithService(mockService),
+				WithMethodGuard(methodGuard),
+			)
+
+			if tt.httpMethod == http.MethodPost && tt.requestBody != "" {
+				if tt.mockError != nil {
+					mockService.EXPECT().
+						Execute(gomock.Any()).
+						Return(nil, tt.mockError).Times(1)
+				} else if tt.mockOutput != nil {
+					mockService.EXPECT().
+						Execute(gomock.Any()).
+						Return(tt.mockOutput, nil).Times(1)
+				}
 			}
-			// Configure o mock para retornar true apenas quando IsMethodAllowed for chamado com http.MethodPost
-			mockMethodGuard.On("IsMethodAllowed", http.MethodPost).Return(true)
 
-			// Configure o mock para retornar false para qualquer outro valor
-			mockMethodGuard.On("IsMethodAllowed", mock.Anything).Return(false)
-
-			adapter := NewNetHTTPAddProductAdapter(WithService(mockUseCase), WithMethodGuard(mockMethodGuard))
-
-			var body []byte
-			var err error
-			if str, ok := tt.input.(string); ok {
-				body = []byte(str)
+			var req *http.Request
+			if tt.requestBody != "" {
+				req = httptest.NewRequest(tt.httpMethod, "/products", bytes.NewBufferString(tt.requestBody))
 			} else {
-				body, err = json.Marshal(tt.input)
-				assert.NoError(t, err)
+				req = httptest.NewRequest(tt.httpMethod, "/products", nil)
 			}
+			rec := httptest.NewRecorder()
 
-			req, _ := http.NewRequest(tt.method, "/products", bytes.NewReader(body))
-			rr := httptest.NewRecorder()
+			adapter.Handle(rec, req)
 
-			adapter.Handle(rr, req)
+			res := rec.Result()
+			defer res.Body.Close()
 
-			assert.Equal(t, tt.expectedStatus, rr.Code)
+			assert.Equal(t, tt.expectedStatusCode, res.StatusCode)
 
-			if tt.expectedStatus == http.StatusCreated {
-				var response AddProductResponse
-				err := json.Unmarshal(rr.Body.Bytes(), &response)
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedBody.(AddProductResponse).ID, response.ID)
-				assert.Equal(t, tt.expectedBody.(AddProductResponse).Name, response.Name)
-				assert.Equal(t, tt.expectedBody.(AddProductResponse).Description, response.Description)
-				assert.Equal(t, tt.expectedBody.(AddProductResponse).Price, response.Price)
-				assert.Equal(t, tt.expectedBody.(AddProductResponse).CreatedAt, response.CreatedAt)
-				assert.Equal(t, tt.expectedBody.(AddProductResponse).UpdatedAt, response.UpdatedAt)
+			var actualBody map[string]interface{}
+			if err := json.NewDecoder(res.Body).Decode(&actualBody); err == nil {
+				assert.Equal(t, tt.expectedResponse, actualBody)
 			} else {
-				assert.Equal(t, tt.expectedBody, rr.Body.String())
+				assert.Equal(t, 0, len(tt.expectedResponse))
 			}
-
-			if tt.expectExecute {
-				mockUseCase.AssertCalled(t, "Execute", mock.Anything)
-			} else {
-				mockUseCase.AssertNotCalled(t, "Execute", mock.Anything)
-			}
-
-			mockMethodGuard.AssertCalled(t, "IsMethodAllowed", tt.method)
 		})
 	}
 }
