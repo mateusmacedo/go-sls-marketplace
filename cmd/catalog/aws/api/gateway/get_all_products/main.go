@@ -27,7 +27,7 @@ func main() {
 	if tableName == "" {
 		logger.Error("PRODUCTS_TABLE environment variable is not set", nil)
 	}
-	repo := dynamodbadapter.NewDynamoDbProductRepository(dynamoClient, tableName)
+	repo := dynamodbadapter.NewDynamoDbProductFindAllRepository(dynamoClient, tableName)
 	service := domain.NewAllProductFinder(repo)
 	usecase := application.NewGetAllProductsUseCase(service)
 	handler := awsadapter.NewLambdaGetAllProductsAdapter(usecase)
