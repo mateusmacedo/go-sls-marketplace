@@ -15,10 +15,3 @@ type ProductFindAllRepository interface {
 type ProductDeleteRepository interface {
 	Delete(id ProductID) error
 }
-
-type ProductRepository interface {
-	ProductSaveRepository
-	ProductFindRepository
-	ProductFindAllRepository
-	ProductDeleteRepository
-}
