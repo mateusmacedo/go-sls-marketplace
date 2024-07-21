@@ -25,6 +25,15 @@ func (m *MockAddProductUseCase) Execute(input application.AddProductInput) (*app
 	return args.Get(0).(*application.AddProductOutput), args.Error(1)
 }
 
+type MockHttpMethodGuard struct {
+	mock.Mock
+}
+
+func (m *MockHttpMethodGuard) IsMethodAllowed(method string) bool {
+	args := m.Called(method)
+	return args.Bool(0)
+}
+
 func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
 
@@ -122,11 +131,13 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUseCase := new(MockAddProductUseCase)
+			mockMethodGuard := new(MockHttpMethodGuard)
 			if tt.expectExecute {
 				mockUseCase.On("Execute", mock.Anything).Return(tt.mockOutput, tt.mockError)
 			}
+			mockMethodGuard.On("IsMethodAllowed", http.MethodPost).Return(true)
 
-			adapter := NewNetHTTPAddProductAdapter(mockUseCase)
+			adapter := NewNetHTTPAddProductAdapter(WithService(mockUseCase), WithMethodGuard(mockMethodGuard))
 
 			var body []byte
 			var err error
@@ -160,9 +171,12 @@ func TestNetHTTPAddProductAdapter_Handle(t *testing.T) {
 
 			if tt.expectExecute {
 				mockUseCase.AssertCalled(t, "Execute", mock.Anything)
+
 			} else {
 				mockUseCase.AssertNotCalled(t, "Execute", mock.Anything)
 			}
+
+			mockMethodGuard.AssertCalled(t, "IsMethodAllowed", http.MethodPost)
 		})
 	}
 }
