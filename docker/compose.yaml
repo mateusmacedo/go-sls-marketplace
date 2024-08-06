@@ -5,10 +5,9 @@ services:
     container_name: "${DOCKER_NAME:-localstack-main}"
     image: localstack/localstack
     ports:
-      - "127.0.0.1:4566:4566"
-      - "127.0.0.1:4510-4559:4510-4559"
+      - "4566:4566"
+      - "4510-4559:4510-4559"
     environment:
-      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
       - DEBUG=${DEBUG:-0}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
@@ -18,3 +17,9 @@ services:
       - "./scripts/localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
       - "${VOLUME_DIR:-./volumes/localstack}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
+
+  plantuml:
+    container_name: "${DOCKER_NAME:-plantuml}"
+    image: plantuml/plantuml-server:jetty
+    ports:
+      - "8080:8080"
